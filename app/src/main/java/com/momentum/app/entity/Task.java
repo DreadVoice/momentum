@@ -73,4 +73,8 @@ public class Task {
 
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubTask> subTasks;
+
+    @ManyToOne
+    @JoinColumn(name = "category_id")
+    private Category category;
 }
