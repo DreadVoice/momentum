@@ -38,3 +38,5 @@ build/
 ### Logs ###
 *.log
 logs/
+
+PROJECT_OVERVIEW.md
