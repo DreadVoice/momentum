@@ -1,0 +1,20 @@
+package com.momentum.app.dto.task;
+
+import java.time.LocalDate;
+
+import com.momentum.app.enums.TaskPriority;
+import com.momentum.app.enums.TaskStatus;
+
+//GET /api/tasks
+//GET /api/tasks/{id}
+public record TaskResponse(
+    Long id,
+    String title,
+    String description,
+    TaskPriority priority,
+    TaskStatus status,
+    String categoryName,
+    LocalDate dueDate
+) {
+
+}
