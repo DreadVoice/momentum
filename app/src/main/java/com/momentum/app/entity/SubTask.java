@@ -34,7 +34,7 @@ public class SubTask {
     private String title;
 
     @Column(name = "is_completed", nullable = false)
-    private Boolean completed;
+    private boolean completed;
 
     private LocalDateTime completedAt;
 
