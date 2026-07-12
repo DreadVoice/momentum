@@ -33,17 +33,20 @@ public class UserServiceImpl implements UserService {
     public UserResponse updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        
-        if (userRepository.existsByEmail(userUpdateRequest.email()) && !user.getEmail().equals(userUpdateRequest.email())) {
+
+        String normalizedEmail = userUpdateRequest.email().trim().toLowerCase();
+        String normalizedUsername = userUpdateRequest.username().trim();
+
+        if (userRepository.existsByEmail(normalizedEmail) && !user.getEmail().equals(normalizedEmail)) {
             throw new RuntimeException("Email is already in use");
         }
 
-        if(userRepository.existsByUsername(userUpdateRequest.username()) && !user.getUsername().equals(userUpdateRequest.username())) {
+        if (userRepository.existsByUsername(normalizedUsername) && !user.getUsername().equals(normalizedUsername)) {
             throw new RuntimeException("Username is already in use");
         }
 
-        user.setUsername(userUpdateRequest.username());
-        user.setEmail(userUpdateRequest.email());
+        user.setUsername(normalizedUsername);
+        user.setEmail(normalizedEmail);
         user.setUpdatedAt(java.time.LocalDateTime.now());
         return toUserResponse(userRepository.save(user));
     }
@@ -66,7 +69,7 @@ public class UserServiceImpl implements UserService {
     }
 
     private UserResponse toUserResponse(User user) {
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getCreatedAt());
+        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getProfilePhoto(), user.getCreatedAt());
     }
 
 }

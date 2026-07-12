@@ -42,6 +42,8 @@ public class User {
     @Column(nullable = false, length = 60)
     private String password;
 
+    private String profilePhoto;
+
     @CreationTimestamp
     private LocalDateTime createdAt;
 
