@@ -1,0 +1,19 @@
+{
+  "properties": [
+    {
+      "name": "app.jwt.secret",
+      "type": "java.lang.String",
+      "description": "Secret key used to sign and verify JWT access and refresh tokens (HS256, minimum 256 bits)."
+    },
+    {
+      "name": "app.jwt.access-token-expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Access token time-to-live in milliseconds."
+    },
+    {
+      "name": "app.jwt.refresh-token-expiration-ms",
+      "type": "java.lang.Long",
+      "description": "Refresh token time-to-live in milliseconds."
+    }
+  ]
+}
