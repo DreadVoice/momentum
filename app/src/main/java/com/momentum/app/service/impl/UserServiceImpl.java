@@ -7,6 +7,9 @@ import com.momentum.app.dto.user.ChangePasswordRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.entity.User;
+import com.momentum.app.exception.InvalidCredentialsException;
+import com.momentum.app.exception.ResourceAlreadyExistsException;
+import com.momentum.app.exception.ResourceNotFoundException;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.UserService;
 
@@ -21,7 +24,7 @@ public class UserServiceImpl implements UserService {
 
     private User findUserById(Long userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
@@ -32,17 +35,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserResponse updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
         String normalizedEmail = userUpdateRequest.email().trim().toLowerCase();
         String normalizedUsername = userUpdateRequest.username().trim();
 
         if (userRepository.existsByEmail(normalizedEmail) && !user.getEmail().equals(normalizedEmail)) {
-            throw new RuntimeException("Email is already in use");
+            throw new ResourceAlreadyExistsException("Email is already in use");
         }
 
         if (userRepository.existsByUsername(normalizedUsername) && !user.getUsername().equals(normalizedUsername)) {
-            throw new RuntimeException("Username is already in use");
+            throw new ResourceAlreadyExistsException("Username is already in use");
         }
 
         user.setUsername(normalizedUsername);
@@ -54,9 +57,9 @@ public class UserServiceImpl implements UserService {
     @Override
     public void changePassword(Long userId, ChangePasswordRequest changePasswordRequest) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         if (!passwordEncoder.matches(changePasswordRequest.currentPassword(), user.getPassword())) {
-            throw new RuntimeException("Current password is incorrect");
+            throw new InvalidCredentialsException("Current password is incorrect");
         }
         user.setPassword(passwordEncoder.encode(changePasswordRequest.newPassword()));
         user.setUpdatedAt(java.time.LocalDateTime.now());
