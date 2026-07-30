@@ -4,13 +4,14 @@ import java.util.List;
 
 import com.momentum.app.dto.subtask.SubTaskCreateRequest;
 import com.momentum.app.dto.subtask.SubTaskResponse;
+import com.momentum.app.dto.subtask.SubTaskUpdateRequest;
 
 public interface SubTaskService {
 
-    SubTaskResponse createSubTask(Long taskId, SubTaskCreateRequest request);
-    List<SubTaskResponse> getSubTasksByTaskId(Long taskId);
-    SubTaskResponse updateSubTask(Long subTaskId, SubTaskCreateRequest request);
-    void deleteSubTask(Long subTaskId);
-    SubTaskResponse toggleCompletionStatus(Long subTaskId);
+    SubTaskResponse createSubTask(Long userId, Long taskId, SubTaskCreateRequest request);
+    List<SubTaskResponse> getSubTasksByTaskId(Long userId, Long taskId);
+    SubTaskResponse updateSubTask(Long userId, Long subTaskId, SubTaskUpdateRequest request);
+    void deleteSubTask(Long userId, Long subTaskId);
+    SubTaskResponse toggleCompletionStatus(Long userId, Long subTaskId);
 
 }

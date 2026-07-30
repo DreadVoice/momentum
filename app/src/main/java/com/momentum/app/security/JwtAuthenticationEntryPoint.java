@@ -15,10 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * Renders 401s as {@link ErrorResponse} JSON. Needed because the security filter chain runs
- * before {@code @RestControllerAdvice}, so {@code GlobalExceptionHandler} never sees these.
- */
+
 @Component
 @RequiredArgsConstructor
 public class JwtAuthenticationEntryPoint implements AuthenticationEntryPoint {

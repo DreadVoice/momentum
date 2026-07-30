@@ -15,9 +15,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import tools.jackson.databind.ObjectMapper;
 
-/**
- * Renders 403s as {@link ErrorResponse} JSON, matching {@link JwtAuthenticationEntryPoint}.
- */
+
 @Component
 @RequiredArgsConstructor
 public class JwtAccessDeniedHandler implements AccessDeniedHandler {

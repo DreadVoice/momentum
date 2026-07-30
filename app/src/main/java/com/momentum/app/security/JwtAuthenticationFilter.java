@@ -17,15 +17,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 
-/**
- * Turns a {@code Authorization: Bearer <access token>} header into an authenticated
- * {@code SecurityContext}. Anything wrong with the token simply leaves the context empty;
- * {@link JwtAuthenticationEntryPoint} then renders the 401.
- *
- * <p>Deliberately not a Spring bean: any {@code Filter} bean is auto-registered against the
- * whole servlet container, which would run it a second time outside the security chain.
- * {@code SecurityConfig} constructs it instead.
- */
+
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 

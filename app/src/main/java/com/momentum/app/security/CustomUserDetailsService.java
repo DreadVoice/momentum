@@ -15,10 +15,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
 
-    /**
-     * Primary lookup for the JWT filter: our token subject is the numeric user id,
-     * not the username.
-     */
+
     @Transactional(readOnly = true)
     public UserPrincipal loadUserById(Long userId) {
         return userRepository.findById(userId)

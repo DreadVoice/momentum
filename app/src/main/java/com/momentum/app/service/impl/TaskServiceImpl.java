@@ -16,6 +16,7 @@ import com.momentum.app.entity.Task;
 import com.momentum.app.entity.User;
 import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
+import com.momentum.app.exception.ResourceNotFoundException;
 import com.momentum.app.repository.CategoryRepository;
 import com.momentum.app.repository.TaskRepository;
 import com.momentum.app.repository.UserRepository;
@@ -34,13 +35,11 @@ public class TaskServiceImpl implements TaskService {
     @Override
     public TaskResponse createTask(Long userId, TaskCreateRequest request) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        Category category = null;
-        if (request.categoryId() != null) {
-            category = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-        }
+        Category category = request.categoryId() != null
+                ? findCategory(userId, request.categoryId())
+                : null;
 
         Task task = Task.builder()
                 .title(request.title())
@@ -81,13 +80,9 @@ public class TaskServiceImpl implements TaskService {
             task.setPriority(request.priority());
         }
 
-        if (request.categoryId() != null) {
-            Category category = categoryRepository.findById(request.categoryId())
-                    .orElseThrow(() -> new RuntimeException("Category not found"));
-            task.setCategory(category);
-        } else {
-            task.setCategory(null);
-        }
+        task.setCategory(request.categoryId() != null
+                ? findCategory(userId, request.categoryId())
+                : null);
 
         return mapToResponse(taskRepository.save(task));
     }
@@ -139,13 +134,24 @@ public class TaskServiceImpl implements TaskService {
 
     private Task findTaskByIdAndUserId(Long taskId, Long userId) {
         Task task = taskRepository.findById(taskId)
-                .orElseThrow(() -> new RuntimeException("Task not found"));
+                .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
         if (!task.getUser().getId().equals(userId)) {
-            throw new RuntimeException("Access denied");
+            throw new ResourceNotFoundException("Task not found");
         }
 
         return task;
+    }
+
+    private Category findCategory(Long userId, Long categoryId) {
+        Category category = categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new ResourceNotFoundException("Category not found"));
+
+        if (!category.getUser().getId().equals(userId)) {
+            throw new ResourceNotFoundException("Category not found");
+        }
+
+        return category;
     }
 
     private TaskResponse mapToResponse(Task task) {
