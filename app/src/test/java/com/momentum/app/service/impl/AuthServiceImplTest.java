@@ -50,7 +50,7 @@ class AuthServiceImplTest {
                 .build();
     }
 
-    private void stubTokens(User user) {
+    private void stubTokens(@SuppressWarnings("unused") User user) {
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("access-token");
         when(jwtService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
     }

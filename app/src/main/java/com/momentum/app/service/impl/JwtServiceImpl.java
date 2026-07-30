@@ -63,9 +63,18 @@ public class JwtServiceImpl implements JwtService {
     }
 
     @Override
+    public boolean isAccessToken(String token) {
+        return hasTokenType(token, ACCESS_TOKEN_TYPE);
+    }
+
+    @Override
     public boolean isRefreshToken(String token) {
+        return hasTokenType(token, REFRESH_TOKEN_TYPE);
+    }
+
+    private boolean hasTokenType(String token, String expectedType) {
         try {
-            return REFRESH_TOKEN_TYPE.equals(parseClaims(token).get(TOKEN_TYPE_CLAIM, String.class));
+            return expectedType.equals(parseClaims(token).get(TOKEN_TYPE_CLAIM, String.class));
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }

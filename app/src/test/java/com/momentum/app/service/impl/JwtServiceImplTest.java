@@ -1,7 +1,6 @@
 package com.momentum.app.service.impl;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +19,7 @@ class JwtServiceImplTest {
     }
 
     @BeforeEach
+    @SuppressWarnings("unused")
     void setUp() {
         jwtService = new JwtServiceImpl(SECRET, ACCESS_MS, REFRESH_MS);
     }
@@ -33,6 +33,7 @@ class JwtServiceImplTest {
         assertThat(token).isNotBlank();
         assertThat(jwtService.extractUserId(token)).isEqualTo(42L);
         assertThat(jwtService.isTokenValid(token, user)).isTrue();
+        assertThat(jwtService.isAccessToken(token)).isTrue();
         assertThat(jwtService.isRefreshToken(token)).isFalse();
     }
 
@@ -44,6 +45,7 @@ class JwtServiceImplTest {
 
         assertThat(jwtService.extractUserId(token)).isEqualTo(7L);
         assertThat(jwtService.isRefreshToken(token)).isTrue();
+        assertThat(jwtService.isAccessToken(token)).isFalse();
     }
 
     @Test
@@ -79,5 +81,19 @@ class JwtServiceImplTest {
     @Test
     void isRefreshToken_returnsFalseForMalformedToken() {
         assertThat(jwtService.isRefreshToken("garbage")).isFalse();
+    }
+
+    @Test
+    void isAccessToken_returnsFalseForMalformedToken() {
+        assertThat(jwtService.isAccessToken("garbage")).isFalse();
+    }
+
+    @Test
+    void isAccessToken_returnsFalseForTokenSignedWithDifferentSecret() {
+        JwtServiceImpl otherService =
+                new JwtServiceImpl("a-completely-different-secret-key-256-bits-long!", ACCESS_MS, REFRESH_MS);
+        String foreignToken = otherService.generateAccessToken(user(1L));
+
+        assertThat(jwtService.isAccessToken(foreignToken)).isFalse();
     }
 }
