@@ -4,6 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
+import com.momentum.app.dto.user.DeleteAccountRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.entity.User;
@@ -67,8 +68,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void deleteUser(Long userId) {
-        userRepository.delete(findUserById(userId));
+    public void deleteUser(Long userId, DeleteAccountRequest deleteAccountRequest) {
+        User user = findUserById(userId);
+
+        if (!passwordEncoder.matches(deleteAccountRequest.password(), user.getPassword())) {
+            throw new InvalidCredentialsException("Password is incorrect");
+        }
+
+        userRepository.delete(user);
     }
 
     private UserResponse toUserResponse(User user) {

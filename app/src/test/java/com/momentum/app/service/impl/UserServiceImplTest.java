@@ -17,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
+import com.momentum.app.dto.user.DeleteAccountRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.entity.User;
@@ -114,12 +115,36 @@ class UserServiceImplTest {
     }
 
     @Test
-    void deleteUser_deletesExistingUser() {
+    void deleteUser_deletesExistingUserWhenPasswordMatches() {
         User existing = user();
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(passwordEncoder.matches("correct", "hashed")).thenReturn(true);
 
-        userService.deleteUser(1L);
+        userService.deleteUser(1L, new DeleteAccountRequest("correct"));
 
         verify(userRepository).delete(existing);
+    }
+
+    @Test
+    void deleteUser_rejectsWrongPassword() {
+        User existing = user();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(passwordEncoder.matches("wrong", "hashed")).thenReturn(false);
+
+        assertThatThrownBy(() -> userService.deleteUser(1L, new DeleteAccountRequest("wrong")))
+                .isInstanceOf(InvalidCredentialsException.class)
+                .hasMessage("Password is incorrect");
+
+        verify(userRepository, never()).delete(any(User.class));
+    }
+
+    @Test
+    void deleteUser_reportsNotFoundForMissingUser() {
+        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> userService.deleteUser(99L, new DeleteAccountRequest("correct")))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(userRepository, never()).delete(any(User.class));
     }
 }

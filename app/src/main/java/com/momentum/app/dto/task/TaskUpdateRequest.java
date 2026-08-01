@@ -5,6 +5,7 @@ import java.time.LocalDate;
 import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
 
+import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -18,6 +19,7 @@ public record TaskUpdateRequest(
     TaskPriority priority,
     TaskStatus status,
     Long categoryId,
+    @FutureOrPresent(message = "Due date must be today or in the future")
     LocalDate dueDate    
 ) {
 
