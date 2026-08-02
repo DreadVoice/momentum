@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
+import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.entity.Category;
@@ -68,12 +69,7 @@ public class TaskServiceImpl implements TaskService {
         task.setDueDate(request.dueDate());
 
         if (request.status() != null) {
-            if (request.status() == TaskStatus.COMPLETED && task.getStatus() != TaskStatus.COMPLETED) {
-                task.setCompletedAt(LocalDateTime.now());
-            } else if (request.status() != TaskStatus.COMPLETED) {
-                task.setCompletedAt(null);
-            }
-            task.setStatus(request.status());
+            applyStatus(task, request.status());
         }
 
         if (request.priority() != null) {
@@ -85,6 +81,41 @@ public class TaskServiceImpl implements TaskService {
                 : null);
 
         return mapToResponse(taskRepository.save(task));
+    }
+
+    @Override
+    public TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest request) {
+        Task task = findTaskByIdAndUserId(taskId, userId);
+
+        if (request.title() != null) {
+            task.setTitle(request.title());
+        }
+        if (request.description() != null) {
+            task.setDescription(request.description());
+        }
+        if (request.priority() != null) {
+            task.setPriority(request.priority());
+        }
+        if (request.status() != null) {
+            applyStatus(task, request.status());
+        }
+        if (request.dueDate() != null) {
+            task.setDueDate(request.dueDate());
+        }
+        if (request.categoryId() != null) {
+            task.setCategory(findCategory(userId, request.categoryId()));
+        }
+
+        return mapToResponse(taskRepository.save(task));
+    }
+
+    private void applyStatus(Task task, TaskStatus status) {
+        if (status == TaskStatus.COMPLETED && task.getStatus() != TaskStatus.COMPLETED) {
+            task.setCompletedAt(LocalDateTime.now());
+        } else if (status != TaskStatus.COMPLETED) {
+            task.setCompletedAt(null);
+        }
+        task.setStatus(status);
     }
 
     @Override

@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.momentum.app.dto.subtask.SubTaskCreateRequest;
+import com.momentum.app.dto.subtask.SubTaskPatchRequest;
 import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.subtask.SubTaskUpdateRequest;
 import com.momentum.app.entity.SubTask;
@@ -70,6 +71,20 @@ public class SubTaskServiceImpl implements SubTaskService {
 
         subTask.setTitle(request.title());
         applyCompletion(subTask, request.completed());
+
+        return mapToResponse(subTaskRepository.save(subTask));
+    }
+
+    @Override
+    public SubTaskResponse patchSubTask(Long userId, Long subTaskId, SubTaskPatchRequest request) {
+        SubTask subTask = findSubTask(userId, subTaskId);
+
+        if (request.title() != null) {
+            subTask.setTitle(request.title());
+        }
+        if (request.completed() != null) {
+            applyCompletion(subTask, request.completed());
+        }
 
         return mapToResponse(subTaskRepository.save(subTask));
     }

@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.momentum.app.dto.category.CategoryCreateRequest;
+import com.momentum.app.dto.category.CategoryPatchRequest;
 import com.momentum.app.dto.category.CategoryResponse;
 import com.momentum.app.dto.category.CategoryUpdateRequest;
 import com.momentum.app.entity.Category;
@@ -68,7 +69,24 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse updateCategory(Long userId, Long categoryId, CategoryUpdateRequest categoryUpdateRequest) {
         Category category = findCategory(userId, categoryId);
 
-        String normalizedName = categoryUpdateRequest.name().trim();
+        rename(category, userId, categoryUpdateRequest.name());
+
+        return toCategoryResponse(categoryRepository.save(category));
+    }
+
+    @Override
+    public CategoryResponse patchCategory(Long userId, Long categoryId, CategoryPatchRequest categoryPatchRequest) {
+        Category category = findCategory(userId, categoryId);
+
+        if (categoryPatchRequest.name() != null) {
+            rename(category, userId, categoryPatchRequest.name());
+        }
+
+        return toCategoryResponse(categoryRepository.save(category));
+    }
+
+    private void rename(Category category, Long userId, String name) {
+        String normalizedName = name.trim();
 
         if (categoryRepository.existsByUserIdAndName(userId, normalizedName)
                 && !category.getName().equals(normalizedName)) {
@@ -76,7 +94,6 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         category.setName(normalizedName);
-        return toCategoryResponse(categoryRepository.save(category));
     }
 
     @Override

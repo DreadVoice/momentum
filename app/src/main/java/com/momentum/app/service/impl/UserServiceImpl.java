@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
 import com.momentum.app.dto.user.DeleteAccountRequest;
+import com.momentum.app.dto.user.UserPatchRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.entity.User;
@@ -38,22 +39,50 @@ public class UserServiceImpl implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String normalizedEmail = userUpdateRequest.email().trim().toLowerCase();
-        String normalizedUsername = userUpdateRequest.username().trim();
+        renameUsername(user, userUpdateRequest.username());
+        changeEmail(user, userUpdateRequest.email());
+        user.setProfilePhoto(normalizeProfilePhoto(userUpdateRequest.profilePhoto()));
+        user.setUpdatedAt(java.time.LocalDateTime.now());
+        return toUserResponse(userRepository.save(user));
+    }
+
+    @Override
+    public UserResponse patchUser(Long userId, UserPatchRequest userPatchRequest) {
+        User user = findUserById(userId);
+
+        if (userPatchRequest.username() != null) {
+            renameUsername(user, userPatchRequest.username());
+        }
+        if (userPatchRequest.email() != null) {
+            changeEmail(user, userPatchRequest.email());
+        }
+        if (userPatchRequest.profilePhoto() != null) {
+            user.setProfilePhoto(normalizeProfilePhoto(userPatchRequest.profilePhoto()));
+        }
+
+        user.setUpdatedAt(java.time.LocalDateTime.now());
+        return toUserResponse(userRepository.save(user));
+    }
+
+    private void renameUsername(User user, String username) {
+        String normalizedUsername = username.trim();
+
+        if (userRepository.existsByUsername(normalizedUsername)
+                && !user.getUsername().equals(normalizedUsername)) {
+            throw new ResourceAlreadyExistsException("Username is already in use");
+        }
+
+        user.setUsername(normalizedUsername);
+    }
+
+    private void changeEmail(User user, String email) {
+        String normalizedEmail = email.trim().toLowerCase();
 
         if (userRepository.existsByEmail(normalizedEmail) && !user.getEmail().equals(normalizedEmail)) {
             throw new ResourceAlreadyExistsException("Email is already in use");
         }
 
-        if (userRepository.existsByUsername(normalizedUsername) && !user.getUsername().equals(normalizedUsername)) {
-            throw new ResourceAlreadyExistsException("Username is already in use");
-        }
-
-        user.setUsername(normalizedUsername);
         user.setEmail(normalizedEmail);
-        user.setProfilePhoto(normalizeProfilePhoto(userUpdateRequest.profilePhoto()));
-        user.setUpdatedAt(java.time.LocalDateTime.now());
-        return toUserResponse(userRepository.save(user));
     }
 
     @Override

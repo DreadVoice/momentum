@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
 import com.momentum.app.dto.user.DeleteAccountRequest;
+import com.momentum.app.dto.user.UserPatchRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.security.UserPrincipal;
@@ -37,6 +38,13 @@ public class UserController {
             @AuthenticationPrincipal UserPrincipal principal,
             @Valid @RequestBody UserUpdateRequest request) {
         return ResponseEntity.ok(userService.updateUser(principal.id(), request));
+    }
+
+    @PatchMapping("/me")
+    public ResponseEntity<UserResponse> patchCurrentUser(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @Valid @RequestBody UserPatchRequest request) {
+        return ResponseEntity.ok(userService.patchUser(principal.id(), request));
     }
 
     @PatchMapping("/me/password")

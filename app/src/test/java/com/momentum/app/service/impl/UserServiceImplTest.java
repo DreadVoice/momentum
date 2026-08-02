@@ -18,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
 import com.momentum.app.dto.user.DeleteAccountRequest;
+import com.momentum.app.dto.user.UserPatchRequest;
 import com.momentum.app.dto.user.UserResponse;
 import com.momentum.app.dto.user.UserUpdateRequest;
 import com.momentum.app.entity.User;
@@ -109,6 +110,36 @@ class UserServiceImplTest {
                 1L, new UserUpdateRequest("alice", "alice@example.com", "   "));
 
         assertThat(response.profilePhoto()).isNull();
+    }
+
+    @Test
+    void patchUser_changingEmailKeepsUsernameAndPhoto() {
+        User existing = user();
+        existing.setProfilePhoto("https://cdn.example.com/alice.png");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserPatchRequest request = new UserPatchRequest(null, "New@Example.com", null);
+
+        UserResponse response = userService.patchUser(1L, request);
+
+        assertThat(response.email()).isEqualTo("new@example.com");
+        assertThat(response.username()).isEqualTo("alice");
+        assertThat(response.profilePhoto()).isEqualTo("https://cdn.example.com/alice.png");
+    }
+
+    @Test
+    void patchUser_rejectsTakenEmail() {
+        when(userRepository.findById(1L)).thenReturn(Optional.of(user()));
+        when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+
+        UserPatchRequest request = new UserPatchRequest(null, "taken@example.com", null);
+
+        assertThatThrownBy(() -> userService.patchUser(1L, request))
+                .isInstanceOf(ResourceAlreadyExistsException.class);
+
+        verify(userRepository, never()).save(any());
     }
 
     @Test

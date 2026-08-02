@@ -119,15 +119,29 @@ class TaskControllerTest {
     }
 
     @Test
-    void createTask_returns400ForPastDueDate() throws Exception {
+    void createTask_acceptsPastDueDate() throws Exception {
+        when(taskService.createTask(eq(USER_ID), any(TaskCreateRequest.class))).thenReturn(task(30L));
+
         mockMvc.perform(authed(post("/api/tasks"))
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(json(new TaskCreateRequest("Write docs", null, null, null,
                         LocalDate.now().minusDays(1)))))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.fieldErrors.dueDate").exists());
+                .andExpect(status().isCreated());
 
-        verify(taskService, never()).createTask(any(), any());
+        verify(taskService).createTask(eq(USER_ID), any(TaskCreateRequest.class));
+    }
+
+    @Test
+    void updateTask_acceptsPastDueDateSoOverdueTasksStayEditable() throws Exception {
+        when(taskService.updateTask(eq(USER_ID), eq(30L), any(TaskUpdateRequest.class))).thenReturn(task(30L));
+
+        mockMvc.perform(authed(put("/api/tasks/30"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(new TaskUpdateRequest("Write docs", null, TaskPriority.HIGH,
+                        TaskStatus.COMPLETED, null, LocalDate.now().minusDays(3)))))
+                .andExpect(status().isOk());
+
+        verify(taskService).updateTask(eq(USER_ID), eq(30L), any(TaskUpdateRequest.class));
     }
 
     @Test

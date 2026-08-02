@@ -1,0 +1,20 @@
+package com.momentum.app.dto.user;
+
+import org.hibernate.validator.constraints.URL;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
+public record UserPatchRequest(
+    @Size(min = 3, max = 50, message = "Username must be between 3 and 50 characters")
+    @Pattern(regexp = "^[A-Za-z0-9_-]+$", message = "Username may only contain letters, numbers, underscores and hyphens")
+    String username,
+    @Email(message = "Email should be valid")
+    String email,
+    @URL(message = "Profile photo must be a valid URL")
+    @Size(max = 512, message = "Profile photo URL cannot exceed 512 characters")
+    String profilePhoto
+) {
+
+}

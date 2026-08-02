@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.momentum.app.dto.category.CategoryCreateRequest;
+import com.momentum.app.dto.category.CategoryPatchRequest;
 import com.momentum.app.dto.category.CategoryResponse;
 import com.momentum.app.dto.category.CategoryUpdateRequest;
 import com.momentum.app.security.UserPrincipal;
@@ -57,6 +59,14 @@ public class CategoryController {
             @PathVariable Long categoryId,
             @Valid @RequestBody CategoryUpdateRequest request) {
         return ResponseEntity.ok(categoryService.updateCategory(principal.id(), categoryId, request));
+    }
+
+    @PatchMapping("/{categoryId}")
+    public ResponseEntity<CategoryResponse> patchCategory(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long categoryId,
+            @Valid @RequestBody CategoryPatchRequest request) {
+        return ResponseEntity.ok(categoryService.patchCategory(principal.id(), categoryId, request));
     }
 
     @DeleteMapping("/{categoryId}")

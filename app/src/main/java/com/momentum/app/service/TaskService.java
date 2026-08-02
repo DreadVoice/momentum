@@ -3,6 +3,7 @@ package com.momentum.app.service;
 import java.util.List;
 
 import com.momentum.app.dto.task.TaskCreateRequest;
+import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.enums.TaskPriority;
@@ -12,6 +13,7 @@ public interface TaskService {
     TaskResponse createTask(Long userId, TaskCreateRequest taskRequest);
     TaskResponse getTaskById(Long userId, Long taskId);
     TaskResponse updateTask(Long userId, Long taskId, TaskUpdateRequest taskRequest);
+    TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest taskRequest);
     void deleteTask(Long userId, Long taskId);
 
     List<TaskResponse> getAllTasks(Long userId);

@@ -1,6 +1,11 @@
 package com.momentum.app.service.impl;
 
+import java.time.LocalDate;
 import java.util.Optional;
+
+import com.momentum.app.dto.task.TaskPatchRequest;
+import com.momentum.app.enums.TaskPriority;
+import com.momentum.app.enums.TaskStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -107,6 +112,47 @@ class TaskServiceImplTest {
 
         assertThat(response.id()).isEqualTo(30L);
         assertThat(response.categoryName()).isEqualTo("Work");
+    }
+
+    @Test
+    void patchTask_changesOnlyTheSuppliedFields() {
+        Task existing = task(5L, OWNER);
+        existing.setDescription("original description");
+        existing.setPriority(TaskPriority.LOW);
+        when(taskRepository.findById(5L)).thenReturn(Optional.of(existing));
+        when(taskRepository.save(any(Task.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        TaskPatchRequest request = new TaskPatchRequest(null, null, null, TaskStatus.COMPLETED, null, null);
+
+        taskService.patchTask(OWNER, 5L, request);
+
+        assertThat(existing.getStatus()).isEqualTo(TaskStatus.COMPLETED);
+        assertThat(existing.getCompletedAt()).isNotNull();
+        assertThat(existing.getTitle()).isEqualTo("Task");
+        assertThat(existing.getDescription()).isEqualTo("original description");
+        assertThat(existing.getPriority()).isEqualTo(TaskPriority.LOW);
+    }
+
+    @Test
+    void patchTask_rejectsTaskOwnedBySomeoneElse() {
+        when(taskRepository.findById(5L)).thenReturn(Optional.of(task(5L, OWNER)));
+
+        assertThatThrownBy(() -> taskService.patchTask(INTRUDER, 5L, new TaskPatchRequest(null, null, null, null, null, null)))
+                .isInstanceOf(ResourceNotFoundException.class);
+
+        verify(taskRepository, never()).save(any(Task.class));
+    }
+
+    @Test
+    void patchTask_rejectsCategoryOwnedBySomeoneElse() {
+        when(taskRepository.findById(5L)).thenReturn(Optional.of(task(5L, OWNER)));
+        when(categoryRepository.findById(7L)).thenReturn(Optional.of(category(7L, INTRUDER)));
+
+        TaskPatchRequest request = new TaskPatchRequest(null, null, null, null, 7L, null);
+
+        assertThatThrownBy(() -> taskService.patchTask(OWNER, 5L, request))
+                .isInstanceOf(ResourceNotFoundException.class)
+                .hasMessage("Category not found");
     }
 
     @Test

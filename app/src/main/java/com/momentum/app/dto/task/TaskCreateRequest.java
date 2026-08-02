@@ -4,7 +4,6 @@ import java.time.LocalDate;
 
 import com.momentum.app.enums.TaskPriority;
 
-import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
@@ -17,7 +16,6 @@ public record TaskCreateRequest(
     String description,
     TaskPriority priority,
     Long categoryId,
-    @FutureOrPresent(message = "Due date must be in the present or future")
     LocalDate dueDate
 ) {
 

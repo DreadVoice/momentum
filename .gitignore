@@ -39,7 +39,7 @@ build/
 *.log
 logs/
 
-PROJECT_OVERVIEW.md
+BACKEND_OVERVIEW.md
 
 ### Node / Electron (ui/) ###
 ui/node_modules/

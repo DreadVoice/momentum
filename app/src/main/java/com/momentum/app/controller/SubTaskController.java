@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.momentum.app.dto.subtask.SubTaskCreateRequest;
+import com.momentum.app.dto.subtask.SubTaskPatchRequest;
 import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.subtask.SubTaskUpdateRequest;
 import com.momentum.app.security.UserPrincipal;
@@ -51,6 +52,14 @@ public class SubTaskController {
             @PathVariable Long subTaskId,
             @Valid @RequestBody SubTaskUpdateRequest request) {
         return ResponseEntity.ok(subTaskService.updateSubTask(principal.id(), subTaskId, request));
+    }
+
+    @PatchMapping("/api/subtasks/{subTaskId}")
+    public ResponseEntity<SubTaskResponse> patchSubTask(
+            @AuthenticationPrincipal UserPrincipal principal,
+            @PathVariable Long subTaskId,
+            @Valid @RequestBody SubTaskPatchRequest request) {
+        return ResponseEntity.ok(subTaskService.patchSubTask(principal.id(), subTaskId, request));
     }
 
     @PatchMapping("/api/subtasks/{subTaskId}/toggle")
