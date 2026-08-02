@@ -1,179 +1,140 @@
 # Momentum
 
-Momentum is a backend-first task management application built with Spring Boot. It provides a structured REST API for managing users, tasks, categories, and subtasks while following a layered architecture that separates business logic, persistence, data transfer objects, and exception handling.
+A task manager built as a full-stack project: a Spring Boot REST API paired with an Electron +
+React desktop client.
 
-The project is designed with maintainability and extensibility in mind, serving as a foundation for a full-stack productivity application.
+**The backend is complete and tested. The desktop client has not been built yet** — `ui/` holds a
+scaffolded Vite + React + Electron shell that still shows the starter template. Everything in the
+API is exercised through tests and HTTP, not through a user interface.
 
-## Features
+Momentum lets you keep tasks, sort them into categories, break them into subtasks, and see what's
+overdue. Accounts are isolated: your data is yours, and the API is built so that no request can
+reach across that line.
 
-Currently implemented:
+---
 
-* User domain model
-* Task management domain
-* Category management
-* Subtask management
-* Layered service architecture
-* Repository abstraction using Spring Data JPA
-* DTO-based API design
-* Global exception handling
-* JWT-ready authentication architecture
-* Validation-ready request/response models
+## Status
 
-## Project Structure
+| Part | State |
+|---|---|
+| REST API | Done — auth, accounts, tasks, subtasks, categories |
+| Authentication | Done — stateless JWT with access and refresh tokens |
+| Database + migrations | Done — MySQL with Flyway |
+| Tests | 171, across unit, slice, and container-backed integration |
+| Desktop client | **Not started** — scaffolding only |
+| Deployment | Not set up |
 
-```text
-src/main/java/com/momentum/app
-├── config          # Application configuration
-├── controller      # REST controllers
-├── dto             # Request and response DTOs
-│   ├── auth
-│   ├── category
-│   ├── subtask
-│   ├── task
-│   └── user
-├── entity          # JPA entities
-├── enums           # Domain enumerations
-├── exception       # Custom exceptions and global handlers
-├── repository      # Spring Data JPA repositories
-├── security        # Authentication and security components
-├── service         # Service interfaces
-│   └── impl        # Service implementations
+Full API reference and architecture notes: **[PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)**.
+
+---
+
+## Repository layout
+
+```
+momentum
+├── app                  Spring Boot backend (Java 21, Maven)
+├── ui                   Electron + React client — scaffolding only, not implemented
+├── docker-compose.yml   MySQL for local development
+└── .env.example         Template for the environment variables the app needs
 ```
 
-## Architecture
+---
 
-Momentum follows a conventional layered architecture.
+## Running the backend
 
-```text
-Client
-    │
-    ▼
-Controller
-    │
-    ▼
-Service Interface
-    │
-    ▼
-Service Implementation
-    │
-    ▼
-Repository
-    │
-    ▼
-Database
-```
+You need **JDK 21** and **Docker**.
 
-Business logic is isolated from persistence, while DTOs provide a stable contract between the API and clients.
-
-## Domain Model
-
-The current backend consists of the following core entities:
-
-* User
-* Task
-* Category
-* SubTask
-
-The application models the relationships between these entities to support organization of personal tasks and their associated subtasks and categories.
-
-## Technology Stack
-
-* Java
-* Spring Boot
-* Spring Data JPA
-* Spring Security
-* JWT Authentication
-* Maven
-* MySQL
-* Lombok
-* Hibernate
-
-## Development Status
-
-The backend foundation has been established and currently includes:
-
-* Domain entities
-* Repository layer
-* Service layer
-* DTOs
-* Custom exception handling
-* Security scaffolding
-
-The following components are still under active development:
-
-* REST controllers
-* Authentication endpoints
-* Frontend client
-* API documentation
-* Automated testing
-
-## Building
-
-Clone the repository.
+**1. Configure the environment.** Copy the template and fill it in:
 
 ```bash
-git clone https://github.com/DreadVoice/momentum.git
+cp .env.example .env
 ```
 
-Navigate into the project.
+`.env` is gitignored — keep it that way. `JWT_SECRET` must be at least 32 characters or the app
+refuses to start. `DB_PASSWORD` becomes the MySQL container's root password on first run.
+
+**2. Start the database.**
 
 ```bash
-cd momentum
+docker compose up -d
 ```
 
-Build using Maven.
+MySQL comes up on port **3308** (3306 and 3307 are commonly taken by other installs; change
+`DB_PORT` if 3308 is busy too).
+
+**3. Run the app.**
 
 ```bash
-mvn clean install
+cd app
+./mvnw spring-boot:run
 ```
 
-Run the application.
+Flyway builds the schema on first boot. The API is then on `http://localhost:8080`.
+
+**4. Check it works.**
 
 ```bash
-mvn spring-boot:run
+curl localhost:8080/api/health
+
+curl -X POST localhost:8080/api/auth/register \
+  -H 'Content-Type: application/json' \
+  -d '{"username":"you","email":"you@example.com","password":"password123"}'
 ```
 
-## Configuration
+Take the `accessToken` from that response and use it:
 
-Application configuration is managed through `application.properties`.
+```bash
+curl localhost:8080/api/health/me -H "Authorization: Bearer <accessToken>"
+```
 
-A MySQL database must be configured before running the application.
+If that returns your user id, authentication is working end to end.
 
-Typical properties include:
+---
 
-* Database URL
-* Username
-* Password
-* JPA configuration
-* JWT configuration (when authentication is completed)
+## Tests
 
-## Design Principles
+```bash
+cd app
+./mvnw test
+```
 
-Momentum is built around several architectural principles:
+Repository and integration tests run against real MySQL via Testcontainers, so **Docker must be
+running** for the whole suite to execute. Without Docker they skip rather than fail — which means
+a green build on a machine with no Docker has not tested those layers.
 
-* Separation of concerns
-* DTO-based API boundaries
-* Repository pattern
-* Service-oriented business logic
-* Global exception handling
-* Extensible package organization
-* Clear domain modelling
+---
+
+## The frontend
+
+`ui/` is set up but empty of real work: React 19, Vite, TypeScript, and Electron are wired
+together, and `npm run electron:dev` opens a window showing the default Vite template.
+
+Two things worth knowing before building it:
+
+- The API allows browser requests from origins listed in `CORS_ALLOWED_ORIGINS`, which defaults to
+  the Vite dev server at `http://localhost:5173`. Dev works out of the box.
+- A **packaged** Electron app loads from `file://`, which sends `Origin: null` and will not match
+  that allowlist. Serving the renderer over a custom protocol, or routing API calls through the
+  main process, avoids the problem. Worth deciding early.
+
+---
 
 ## Roadmap
 
-Planned work includes:
+Backend:
 
-* Complete REST API implementation
-* JWT authentication flow
-* User registration and login
-* Task filtering and searching
-* Pagination and sorting
-* Input validation
-* Unit and integration testing
-* OpenAPI documentation
-* Docker support
-* Frontend implementation
+- Pagination and sorting on the task list
+- Logout and refresh-token revocation
+- Rate limiting on the auth endpoints
+- OpenAPI documentation
+- Dockerfile and a deployment target
+
+Frontend:
+
+- Everything — auth screens, task views, categories, subtask checklists, offline behaviour
+
+---
 
 ## License
 
-No license has been specified for this repository.
+[MIT](LICENSE) © DreadVoice
