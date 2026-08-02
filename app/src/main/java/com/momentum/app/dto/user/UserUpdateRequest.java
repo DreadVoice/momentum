@@ -1,5 +1,7 @@
 package com.momentum.app.dto.user;
 
+import org.hibernate.validator.constraints.URL;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
@@ -12,7 +14,10 @@ public record UserUpdateRequest(
     String username,
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
-    String email
+    String email,
+    @URL(message = "Profile photo must be a valid URL")
+    @Size(max = 512, message = "Profile photo URL cannot exceed 512 characters")
+    String profilePhoto
 ) {
 
 }

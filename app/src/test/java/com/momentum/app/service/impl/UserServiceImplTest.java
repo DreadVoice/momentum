@@ -73,10 +73,42 @@ class UserServiceImplTest {
         when(userRepository.existsByUsername("bob")).thenReturn(false);
         when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        UserResponse response = userService.updateUser(1L, new UserUpdateRequest("bob", "Bob@Example.com"));
+        UserResponse response = userService.updateUser(
+                1L, new UserUpdateRequest("bob", "Bob@Example.com", "https://cdn.example.com/bob.png"));
 
         assertThat(response.username()).isEqualTo("bob");
         assertThat(response.email()).isEqualTo("bob@example.com");
+        assertThat(response.profilePhoto()).isEqualTo("https://cdn.example.com/bob.png");
+    }
+
+    @Test
+    void updateUser_clearsProfilePhotoWhenOmitted() {
+        User existing = user();
+        existing.setProfilePhoto("https://cdn.example.com/old.png");
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.existsByEmail("alice@example.com")).thenReturn(true);
+        when(userRepository.existsByUsername("alice")).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserResponse response = userService.updateUser(
+                1L, new UserUpdateRequest("alice", "alice@example.com", null));
+
+        assertThat(response.profilePhoto()).isNull();
+        assertThat(existing.getProfilePhoto()).isNull();
+    }
+
+    @Test
+    void updateUser_treatsBlankProfilePhotoAsNull() {
+        User existing = user();
+        when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
+        when(userRepository.existsByEmail("alice@example.com")).thenReturn(true);
+        when(userRepository.existsByUsername("alice")).thenReturn(true);
+        when(userRepository.save(any(User.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        UserResponse response = userService.updateUser(
+                1L, new UserUpdateRequest("alice", "alice@example.com", "   "));
+
+        assertThat(response.profilePhoto()).isNull();
     }
 
     @Test
@@ -85,7 +117,8 @@ class UserServiceImplTest {
         when(userRepository.findById(1L)).thenReturn(Optional.of(existing));
         when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
 
-        assertThatThrownBy(() -> userService.updateUser(1L, new UserUpdateRequest("alice", "taken@example.com")))
+        assertThatThrownBy(() -> userService.updateUser(
+                1L, new UserUpdateRequest("alice", "taken@example.com", null)))
                 .isInstanceOf(ResourceAlreadyExistsException.class);
         verify(userRepository, never()).save(any());
     }

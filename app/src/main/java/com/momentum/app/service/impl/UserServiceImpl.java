@@ -51,6 +51,7 @@ public class UserServiceImpl implements UserService {
 
         user.setUsername(normalizedUsername);
         user.setEmail(normalizedEmail);
+        user.setProfilePhoto(normalizeProfilePhoto(userUpdateRequest.profilePhoto()));
         user.setUpdatedAt(java.time.LocalDateTime.now());
         return toUserResponse(userRepository.save(user));
     }
@@ -76,6 +77,14 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.delete(user);
+    }
+
+    private String normalizeProfilePhoto(String profilePhoto) {
+        if (profilePhoto == null) {
+            return null;
+        }
+        String trimmed = profilePhoto.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
     private UserResponse toUserResponse(User user) {

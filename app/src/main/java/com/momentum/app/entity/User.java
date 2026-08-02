@@ -42,6 +42,7 @@ public class User {
     @Column(nullable = false, length = 60)
     private String password;
 
+    @Column(length = 512)
     private String profilePhoto;
 
     @CreationTimestamp

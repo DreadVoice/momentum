@@ -11,8 +11,7 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.testcontainers.containers.MySQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.mysql.MySQLContainer;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 import com.momentum.app.dto.auth.AuthResponse;
@@ -34,9 +33,10 @@ import com.momentum.app.repository.UserRepository;
 @Testcontainers(disabledWithoutDocker = true)
 abstract class IntegrationTestBase {
 
-    @Container
+    // No @Container: JUnit stops a static container after each class, and every subclass
+    // shares this one field. Spring Boot starts it instead and keeps it up for the JVM.
     @ServiceConnection
-    static final MySQLContainer<?> MYSQL = new MySQLContainer<>("mysql:8.4");
+    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
 
     @Autowired
     protected TestRestTemplate rest;

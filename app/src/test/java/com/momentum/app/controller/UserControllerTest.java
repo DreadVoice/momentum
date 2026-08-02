@@ -113,7 +113,7 @@ class UserControllerTest {
 
         mockMvc.perform(authed(put("/api/users/me"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(new UserUpdateRequest("alice", "alice@example.com"))))
+                .content(json(new UserUpdateRequest("alice", "alice@example.com", null))))
                 .andExpect(status().isOk());
 
         verify(userService).updateUser(eq(USER_ID), any(UserUpdateRequest.class));
@@ -123,10 +123,34 @@ class UserControllerTest {
     void updateCurrentUser_returns400ForInvalidBody() throws Exception {
         mockMvc.perform(authed(put("/api/users/me"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(new UserUpdateRequest("a!", "not-an-email"))))
+                .content(json(new UserUpdateRequest("a!", "not-an-email", null))))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.fieldErrors.username").exists())
                 .andExpect(jsonPath("$.fieldErrors.email").exists());
+
+        verify(userService, never()).updateUser(any(), any());
+    }
+
+    @Test
+    void updateCurrentUser_acceptsAndReturnsProfilePhoto() throws Exception {
+        String photo = "https://cdn.example.com/alice.png";
+        when(userService.updateUser(eq(USER_ID), any(UserUpdateRequest.class)))
+                .thenReturn(new UserResponse(USER_ID, "alice", "alice@example.com", photo, LocalDateTime.now()));
+
+        mockMvc.perform(authed(put("/api/users/me"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(new UserUpdateRequest("alice", "alice@example.com", photo))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.profilePhoto").value(photo));
+    }
+
+    @Test
+    void updateCurrentUser_returns400ForMalformedProfilePhotoUrl() throws Exception {
+        mockMvc.perform(authed(put("/api/users/me"))
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(json(new UserUpdateRequest("alice", "alice@example.com", "not a url"))))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.fieldErrors.profilePhoto").exists());
 
         verify(userService, never()).updateUser(any(), any());
     }
@@ -138,7 +162,7 @@ class UserControllerTest {
 
         mockMvc.perform(authed(put("/api/users/me"))
                 .contentType(MediaType.APPLICATION_JSON)
-                .content(json(new UserUpdateRequest("bob", "bob@example.com"))))
+                .content(json(new UserUpdateRequest("bob", "bob@example.com", null))))
                 .andExpect(status().isConflict())
                 .andExpect(jsonPath("$.message").value("Username is already in use"));
     }
