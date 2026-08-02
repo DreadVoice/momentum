@@ -1,0 +1,22 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: momentum-mysql
+    restart: unless-stopped
+    # Host 3308: 3306 is a locally installed mysqld and 3307 is another project's container.
+    ports:
+      - "${DB_PORT:-3308}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD must be set in .env}
+      MYSQL_DATABASE: ${DB_NAME:-momentum}
+    volumes:
+      - momentum-mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${DB_PASSWORD}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+volumes:
+  momentum-mysql-data:
