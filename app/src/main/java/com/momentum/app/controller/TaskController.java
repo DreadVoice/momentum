@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Stream;
 
 import org.springframework.http.ResponseEntity;
@@ -54,7 +55,7 @@ public class TaskController {
             @RequestParam(required = false) TaskPriority priority,
             @RequestParam(required = false) Long categoryId) {
 
-        if (Stream.of(status, priority, categoryId).filter(f -> f != null).count() > 1) {
+        if (Stream.of(status, priority, categoryId).filter(Objects::nonNull).count() > 1) {
             throw new IllegalArgumentException("Only one of status, priority or categoryId may be supplied");
         }
 

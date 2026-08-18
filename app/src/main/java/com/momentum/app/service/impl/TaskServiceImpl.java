@@ -208,7 +208,7 @@ public class TaskServiceImpl implements TaskService {
                 subTasks,
                 subTasks.size(),
                 (int) subTasks.stream()
-                        .filter(st -> st != null && st.completed())
+                        .filter(SubTaskResponse::completed)
                         .count()
         );
     }

@@ -36,8 +36,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse updateUser(Long userId, UserUpdateRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = findUser(userId);
 
         renameUsername(user, request.username());
         changeEmail(user, request.email());
@@ -87,8 +86,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void changePassword(Long userId, ChangePasswordRequest request) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        User user = findUser(userId);
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Current password is incorrect");
         }
