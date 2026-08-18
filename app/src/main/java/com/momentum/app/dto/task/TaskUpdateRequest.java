@@ -8,7 +8,6 @@ import com.momentum.app.enums.TaskStatus;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-// PUT /api/tasks/{id}
 public record TaskUpdateRequest(
     @NotBlank(message = "Title is required")
     @Size(max = 255, message = "Title cannot exceed 255 characters")

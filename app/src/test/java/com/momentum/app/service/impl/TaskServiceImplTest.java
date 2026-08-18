@@ -3,27 +3,27 @@ package com.momentum.app.service.impl;
 import java.time.LocalDate;
 import java.util.Optional;
 
-import com.momentum.app.dto.task.TaskPatchRequest;
-import com.momentum.app.enums.TaskPriority;
-import com.momentum.app.enums.TaskStatus;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.momentum.app.dto.task.TaskCreateRequest;
+import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.entity.Category;
 import com.momentum.app.entity.Task;
 import com.momentum.app.entity.User;
+import com.momentum.app.enums.TaskPriority;
+import com.momentum.app.enums.TaskStatus;
 import com.momentum.app.exception.ResourceNotFoundException;
 import com.momentum.app.repository.CategoryRepository;
 import com.momentum.app.repository.TaskRepository;

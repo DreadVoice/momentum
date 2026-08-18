@@ -3,7 +3,6 @@ package com.momentum.app.dto.auth;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-//POST /api/auth/login
 public record LoginRequest(
     @NotBlank(message = "Username or email is required")
     String usernameOrEmail,

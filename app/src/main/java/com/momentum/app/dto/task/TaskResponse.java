@@ -8,8 +8,6 @@ import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
 
-//GET /api/tasks
-//GET /api/tasks/{id}
 public record TaskResponse(
     Long id,
     String title,
