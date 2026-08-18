@@ -10,10 +10,10 @@ import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
 
 public interface TaskService {
-    TaskResponse createTask(Long userId, TaskCreateRequest taskRequest);
+    TaskResponse createTask(Long userId, TaskCreateRequest request);
     TaskResponse getTaskById(Long userId, Long taskId);
-    TaskResponse updateTask(Long userId, Long taskId, TaskUpdateRequest taskRequest);
-    TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest taskRequest);
+    TaskResponse updateTask(Long userId, Long taskId, TaskUpdateRequest request);
+    TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest request);
     void deleteTask(Long userId, Long taskId);
 
     List<TaskResponse> getAllTasks(Long userId);

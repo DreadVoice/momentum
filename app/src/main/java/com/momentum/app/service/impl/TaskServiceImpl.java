@@ -52,17 +52,17 @@ public class TaskServiceImpl implements TaskService {
                 .category(category)
                 .build();
 
-        return mapToResponse(taskRepository.save(task));
+        return toResponse(taskRepository.save(task));
     }
 
     @Override
     public TaskResponse getTaskById(Long userId, Long taskId) {
-        return mapToResponse(findTaskByIdAndUserId(taskId, userId));
+        return toResponse(findTask(userId, taskId));
     }
 
     @Override
     public TaskResponse updateTask(Long userId, Long taskId, TaskUpdateRequest request) {
-        Task task = findTaskByIdAndUserId(taskId, userId);
+        Task task = findTask(userId, taskId);
 
         task.setTitle(request.title());
         task.setDescription(request.description());
@@ -80,12 +80,12 @@ public class TaskServiceImpl implements TaskService {
                 ? findCategory(userId, request.categoryId())
                 : null);
 
-        return mapToResponse(taskRepository.save(task));
+        return toResponse(taskRepository.save(task));
     }
 
     @Override
     public TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest request) {
-        Task task = findTaskByIdAndUserId(taskId, userId);
+        Task task = findTask(userId, taskId);
 
         if (request.title() != null) {
             task.setTitle(request.title());
@@ -106,7 +106,7 @@ public class TaskServiceImpl implements TaskService {
             task.setCategory(findCategory(userId, request.categoryId()));
         }
 
-        return mapToResponse(taskRepository.save(task));
+        return toResponse(taskRepository.save(task));
     }
 
     private void applyStatus(Task task, TaskStatus status) {
@@ -120,41 +120,41 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public void deleteTask(Long userId, Long taskId) {
-        taskRepository.delete(findTaskByIdAndUserId(taskId, userId));
+        taskRepository.delete(findTask(userId, taskId));
     }
 
     @Override
     public List<TaskResponse> getAllTasks(Long userId) {
         return taskRepository.findByUserId(userId).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public List<TaskResponse> getTasksByStatus(Long userId, TaskStatus status) {
         return taskRepository.findByUserIdAndStatus(userId, status).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public List<TaskResponse> getTasksByPriority(Long userId, TaskPriority priority) {
         return taskRepository.findByUserIdAndPriority(userId, priority).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public List<TaskResponse> getTasksByCategory(Long userId, Long categoryId) {
         return taskRepository.findByUserIdAndCategoryId(userId, categoryId).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public List<TaskResponse> getOverdueTasks(Long userId) {
         return taskRepository.findByUserIdAndDueDateBefore(userId, LocalDate.now()).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -163,7 +163,7 @@ public class TaskServiceImpl implements TaskService {
         return taskRepository.countByUserIdAndStatus(userId, status);
     }
 
-    private Task findTaskByIdAndUserId(Long taskId, Long userId) {
+    private Task findTask(Long userId, Long taskId) {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
@@ -185,7 +185,7 @@ public class TaskServiceImpl implements TaskService {
         return category;
     }
 
-    private TaskResponse mapToResponse(Task task) {
+    private TaskResponse toResponse(Task task) {
         List<SubTaskResponse> subTasks = task.getSubTasks() != null
                 ? task.getSubTasks().stream()
                         .map(st -> new SubTaskResponse(

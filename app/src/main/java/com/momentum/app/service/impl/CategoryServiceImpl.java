@@ -35,11 +35,11 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponse createCategory(Long userId, CategoryCreateRequest categoryCreateRequest) {
+    public CategoryResponse createCategory(Long userId, CategoryCreateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        String normalizedName = categoryCreateRequest.name().trim();
+        String normalizedName = request.name().trim();
 
         if (categoryRepository.existsByUserIdAndName(userId, normalizedName)) {
             throw new ResourceAlreadyExistsException("Category already exists");
@@ -50,39 +50,39 @@ public class CategoryServiceImpl implements CategoryService {
                 .user(user)
                 .build();
 
-        return toCategoryResponse(categoryRepository.save(category));
+        return toResponse(categoryRepository.save(category));
     }
 
     @Override
     public List<CategoryResponse> getCategories(Long userId) {
         return categoryRepository.findByUserId(userId).stream()
-                .map(this::toCategoryResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
     @Override
     public CategoryResponse getCategoryById(Long userId, Long categoryId) {
-        return toCategoryResponse(findCategory(userId, categoryId));
+        return toResponse(findCategory(userId, categoryId));
     }
 
     @Override
-    public CategoryResponse updateCategory(Long userId, Long categoryId, CategoryUpdateRequest categoryUpdateRequest) {
+    public CategoryResponse updateCategory(Long userId, Long categoryId, CategoryUpdateRequest request) {
         Category category = findCategory(userId, categoryId);
 
-        rename(category, userId, categoryUpdateRequest.name());
+        rename(category, userId, request.name());
 
-        return toCategoryResponse(categoryRepository.save(category));
+        return toResponse(categoryRepository.save(category));
     }
 
     @Override
-    public CategoryResponse patchCategory(Long userId, Long categoryId, CategoryPatchRequest categoryPatchRequest) {
+    public CategoryResponse patchCategory(Long userId, Long categoryId, CategoryPatchRequest request) {
         Category category = findCategory(userId, categoryId);
 
-        if (categoryPatchRequest.name() != null) {
-            rename(category, userId, categoryPatchRequest.name());
+        if (request.name() != null) {
+            rename(category, userId, request.name());
         }
 
-        return toCategoryResponse(categoryRepository.save(category));
+        return toResponse(categoryRepository.save(category));
     }
 
     private void rename(Category category, Long userId, String name) {
@@ -101,7 +101,7 @@ public class CategoryServiceImpl implements CategoryService {
         categoryRepository.delete(findCategory(userId, categoryId));
     }
 
-    private CategoryResponse toCategoryResponse(Category category) {
+    private CategoryResponse toResponse(Category category) {
         int taskCount = category.getTasks() == null ? 0 : category.getTasks().size();
         return new CategoryResponse(category.getId(), category.getName(), taskCount);
     }

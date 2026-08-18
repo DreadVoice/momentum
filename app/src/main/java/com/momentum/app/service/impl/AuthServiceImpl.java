@@ -26,9 +26,9 @@ public class AuthServiceImpl implements AuthService {
     private final JwtService jwtService;
 
     @Override
-    public AuthResponse register(RegisterRequest registerRequest) {
-        String normalizedUsername = registerRequest.username().trim();
-        String normalizedEmail = registerRequest.email().trim().toLowerCase();
+    public AuthResponse register(RegisterRequest request) {
+        String normalizedUsername = request.username().trim();
+        String normalizedEmail = request.email().trim().toLowerCase();
 
         if (userRepository.existsByUsername(normalizedUsername)) {
             throw new ResourceAlreadyExistsException("Username is already in use");
@@ -40,21 +40,21 @@ public class AuthServiceImpl implements AuthService {
         User user = User.builder()
                 .username(normalizedUsername)
                 .email(normalizedEmail)
-                .password(passwordEncoder.encode(registerRequest.password()))
+                .password(passwordEncoder.encode(request.password()))
                 .build();
 
         return toAuthResponse(userRepository.save(user));
     }
 
     @Override
-    public AuthResponse login(LoginRequest loginRequest) {
-        String identifier = loginRequest.usernameOrEmail().trim();
+    public AuthResponse login(LoginRequest request) {
+        String identifier = request.usernameOrEmail().trim();
 
         User user = identifier.contains("@")
                 ? userRepository.findByEmail(identifier.toLowerCase()).orElse(null)
                 : userRepository.findByUsername(identifier).orElse(null);
 
-        if (user == null || !passwordEncoder.matches(loginRequest.password(), user.getPassword())) {
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
@@ -62,8 +62,8 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public AuthResponse refresh(RefreshTokenRequest refreshTokenRequest) {
-        String refreshToken = refreshTokenRequest.refreshToken();
+    public AuthResponse refresh(RefreshTokenRequest request) {
+        String refreshToken = request.refreshToken();
 
         if (!jwtService.isRefreshToken(refreshToken)) {
             throw new InvalidCredentialsException("Invalid refresh token");

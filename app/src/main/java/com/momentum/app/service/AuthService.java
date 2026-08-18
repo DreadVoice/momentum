@@ -6,7 +6,7 @@ import com.momentum.app.dto.auth.RefreshTokenRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
 
 public interface AuthService {
-    AuthResponse register(RegisterRequest registerRequest);
-    AuthResponse login(LoginRequest loginRequest);
-    AuthResponse refresh(RefreshTokenRequest refreshTokenRequest);
+    AuthResponse register(RegisterRequest request);
+    AuthResponse login(LoginRequest request);
+    AuthResponse refresh(RefreshTokenRequest request);
 }

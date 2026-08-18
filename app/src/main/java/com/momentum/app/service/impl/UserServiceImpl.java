@@ -24,44 +24,44 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    private User findUserById(Long userId) {
+    private User findUser(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
     }
 
     @Override
     public UserResponse getUserById(Long userId) {
-        return toUserResponse(findUserById(userId));
+        return toResponse(findUser(userId));
     }
 
     @Override
-    public UserResponse updateUser(Long userId, UserUpdateRequest userUpdateRequest) {
+    public UserResponse updateUser(Long userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-        renameUsername(user, userUpdateRequest.username());
-        changeEmail(user, userUpdateRequest.email());
-        user.setProfilePhoto(normalizeProfilePhoto(userUpdateRequest.profilePhoto()));
+        renameUsername(user, request.username());
+        changeEmail(user, request.email());
+        user.setProfilePhoto(normalizeProfilePhoto(request.profilePhoto()));
         user.setUpdatedAt(java.time.LocalDateTime.now());
-        return toUserResponse(userRepository.save(user));
+        return toResponse(userRepository.save(user));
     }
 
     @Override
-    public UserResponse patchUser(Long userId, UserPatchRequest userPatchRequest) {
-        User user = findUserById(userId);
+    public UserResponse patchUser(Long userId, UserPatchRequest request) {
+        User user = findUser(userId);
 
-        if (userPatchRequest.username() != null) {
-            renameUsername(user, userPatchRequest.username());
+        if (request.username() != null) {
+            renameUsername(user, request.username());
         }
-        if (userPatchRequest.email() != null) {
-            changeEmail(user, userPatchRequest.email());
+        if (request.email() != null) {
+            changeEmail(user, request.email());
         }
-        if (userPatchRequest.profilePhoto() != null) {
-            user.setProfilePhoto(normalizeProfilePhoto(userPatchRequest.profilePhoto()));
+        if (request.profilePhoto() != null) {
+            user.setProfilePhoto(normalizeProfilePhoto(request.profilePhoto()));
         }
 
         user.setUpdatedAt(java.time.LocalDateTime.now());
-        return toUserResponse(userRepository.save(user));
+        return toResponse(userRepository.save(user));
     }
 
     private void renameUsername(User user, String username) {
@@ -86,22 +86,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void changePassword(Long userId, ChangePasswordRequest changePasswordRequest) {
+    public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        if (!passwordEncoder.matches(changePasswordRequest.currentPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
             throw new InvalidCredentialsException("Current password is incorrect");
         }
-        user.setPassword(passwordEncoder.encode(changePasswordRequest.newPassword()));
+        user.setPassword(passwordEncoder.encode(request.newPassword()));
         user.setUpdatedAt(java.time.LocalDateTime.now());
         userRepository.save(user);
     }
 
     @Override
-    public void deleteUser(Long userId, DeleteAccountRequest deleteAccountRequest) {
-        User user = findUserById(userId);
+    public void deleteUser(Long userId, DeleteAccountRequest request) {
+        User user = findUser(userId);
 
-        if (!passwordEncoder.matches(deleteAccountRequest.password(), user.getPassword())) {
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new InvalidCredentialsException("Password is incorrect");
         }
 
@@ -116,7 +116,7 @@ public class UserServiceImpl implements UserService {
         return trimmed.isEmpty() ? null : trimmed;
     }
 
-    private UserResponse toUserResponse(User user) {
+    private UserResponse toResponse(User user) {
         return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), user.getProfilePhoto(), user.getCreatedAt());
     }
 

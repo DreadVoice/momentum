@@ -53,7 +53,7 @@ public class SubTaskServiceImpl implements SubTaskService {
                 .task(task)
                 .build();
 
-        return mapToResponse(subTaskRepository.save(subTask));
+        return toResponse(subTaskRepository.save(subTask));
     }
 
     @Override
@@ -61,7 +61,7 @@ public class SubTaskServiceImpl implements SubTaskService {
         findTask(userId, taskId);
 
         return subTaskRepository.findByTaskId(taskId).stream()
-                .map(this::mapToResponse)
+                .map(this::toResponse)
                 .toList();
     }
 
@@ -72,7 +72,7 @@ public class SubTaskServiceImpl implements SubTaskService {
         subTask.setTitle(request.title());
         applyCompletion(subTask, request.completed());
 
-        return mapToResponse(subTaskRepository.save(subTask));
+        return toResponse(subTaskRepository.save(subTask));
     }
 
     @Override
@@ -86,7 +86,7 @@ public class SubTaskServiceImpl implements SubTaskService {
             applyCompletion(subTask, request.completed());
         }
 
-        return mapToResponse(subTaskRepository.save(subTask));
+        return toResponse(subTaskRepository.save(subTask));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class SubTaskServiceImpl implements SubTaskService {
 
         applyCompletion(subTask, !subTask.isCompleted());
 
-        return mapToResponse(subTaskRepository.save(subTask));
+        return toResponse(subTaskRepository.save(subTask));
     }
 
     private void applyCompletion(SubTask subTask, boolean completed) {
@@ -111,7 +111,7 @@ public class SubTaskServiceImpl implements SubTaskService {
         subTask.setCompletedAt(completed ? LocalDateTime.now() : null);
     }
 
-    private SubTaskResponse mapToResponse(SubTask subTask) {
+    private SubTaskResponse toResponse(SubTask subTask) {
         return new SubTaskResponse(
                 subTask.getId(),
                 subTask.getTitle(),
