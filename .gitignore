@@ -39,7 +39,6 @@ build/
 *.log
 logs/
 
-BACKEND_OVERVIEW.md
 
 ### Node / Electron (ui/) ###
 ui/node_modules/
