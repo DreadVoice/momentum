@@ -7,6 +7,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 
 import com.momentum.app.entity.Category;
 import com.momentum.app.entity.Task;
@@ -134,4 +137,61 @@ class TaskRepositoryTest extends DataJpaTestBase {
         assertThat(reloaded.getCreatedAt()).isNotNull();
         assertThat(reloaded.getCategory().getName()).isEqualTo("Work");
     }
+    @Test
+    void findFiltered_withNoFiltersReturnsOnlyThatUsersTasks() {
+        newTask(alice, "Alice A", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+        newTask(alice, "Alice B", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+        newTask(bob, "Bob A", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+
+        Page<Task> page = taskRepository.findFiltered(
+                alice.getId(), null, null, null, PageRequest.of(0, 10));
+
+        assertThat(page.getTotalElements()).isEqualTo(2);
+        assertThat(page.getContent()).extracting(Task::getTitle)
+                .containsExactlyInAnyOrder("Alice A", "Alice B");
+    }
+
+    @Test
+    void findFiltered_appliesStatusPriorityAndCategoryTogether() {
+        newTask(alice, "Match", TaskStatus.PENDING, TaskPriority.HIGH, null, work);
+        newTask(alice, "Wrong status", TaskStatus.COMPLETED, TaskPriority.HIGH, null, work);
+        newTask(alice, "Wrong priority", TaskStatus.PENDING, TaskPriority.LOW, null, work);
+        newTask(alice, "Wrong category", TaskStatus.PENDING, TaskPriority.HIGH, null, null);
+
+        Page<Task> page = taskRepository.findFiltered(alice.getId(), TaskStatus.PENDING,
+                TaskPriority.HIGH, work.getId(), PageRequest.of(0, 10));
+
+        assertThat(page.getContent()).extracting(Task::getTitle).containsExactly("Match");
+    }
+
+    @Test
+    void findFiltered_pagesAndReportsTotals() {
+        for (int i = 1; i <= 5; i++) {
+            newTask(alice, "Task " + i, TaskStatus.PENDING, TaskPriority.LOW, null, null);
+        }
+
+        Page<Task> first = taskRepository.findFiltered(alice.getId(), null, null, null,
+                PageRequest.of(0, 2, Sort.by("title")));
+        Page<Task> last = taskRepository.findFiltered(alice.getId(), null, null, null,
+                PageRequest.of(2, 2, Sort.by("title")));
+
+        assertThat(first.getTotalElements()).isEqualTo(5);
+        assertThat(first.getTotalPages()).isEqualTo(3);
+        assertThat(first.getContent()).extracting(Task::getTitle)
+                .containsExactly("Task 1", "Task 2");
+        assertThat(last.getContent()).extracting(Task::getTitle).containsExactly("Task 5");
+    }
+
+    @Test
+    void findFiltered_sortsByTheRequestedProperty() {
+        newTask(alice, "B", TaskStatus.PENDING, TaskPriority.LOW, LocalDate.of(2026, 3, 1), null);
+        newTask(alice, "A", TaskStatus.PENDING, TaskPriority.LOW, LocalDate.of(2026, 1, 1), null);
+        newTask(alice, "C", TaskStatus.PENDING, TaskPriority.LOW, LocalDate.of(2026, 2, 1), null);
+
+        Page<Task> page = taskRepository.findFiltered(alice.getId(), null, null, null,
+                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "dueDate")));
+
+        assertThat(page.getContent()).extracting(Task::getTitle).containsExactly("B", "C", "A");
+    }
+
 }
