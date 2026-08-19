@@ -16,8 +16,10 @@ import com.momentum.app.exception.ResourceNotFoundException;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.UserService;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -89,6 +91,7 @@ public class UserServiceImpl implements UserService {
     public void changePassword(Long userId, ChangePasswordRequest request) {
         User user = findUser(userId);
         if (!passwordEncoder.matches(request.currentPassword(), user.getPassword())) {
+            log.warn("Rejected password change for user {}: current password did not match", userId);
             throw new InvalidCredentialsException("Current password is incorrect");
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
@@ -100,6 +103,7 @@ public class UserServiceImpl implements UserService {
         User user = findUser(userId);
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn("Rejected account deletion for user {}: password did not match", userId);
             throw new InvalidCredentialsException("Password is incorrect");
         }
 

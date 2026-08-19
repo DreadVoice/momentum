@@ -16,8 +16,10 @@ import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.AuthService;
 import com.momentum.app.service.JwtService;
 
+import lombok.extern.slf4j.Slf4j;
 import lombok.RequiredArgsConstructor;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -58,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
                 : userRepository.findByUsername(identifier).orElse(null);
 
         if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn("Failed login attempt for identifier {}", identifier);
             throw new InvalidCredentialsException("Invalid credentials");
         }
 

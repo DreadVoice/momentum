@@ -39,13 +39,13 @@ abstract class IntegrationTestBase {
     protected TestRestTemplate rest;
 
     @Autowired
-    private SubTaskRepository subTaskRepository;
+    protected SubTaskRepository subTaskRepository;
     @Autowired
-    private TaskRepository taskRepository;
+    protected TaskRepository taskRepository;
     @Autowired
-    private CategoryRepository categoryRepository;
+    protected CategoryRepository categoryRepository;
     @Autowired
-    private UserRepository userRepository;
+    protected UserRepository userRepository;
 
     @AfterEach
     void clearDatabase() {
