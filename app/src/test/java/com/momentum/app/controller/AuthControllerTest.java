@@ -28,13 +28,14 @@ import com.momentum.app.exception.ResourceAlreadyExistsException;
 import com.momentum.app.security.CustomUserDetailsService;
 import com.momentum.app.security.JwtAccessDeniedHandler;
 import com.momentum.app.security.JwtAuthenticationEntryPoint;
+import com.momentum.app.security.RateLimitFilter;
 import com.momentum.app.service.AuthService;
 import com.momentum.app.service.JwtService;
 
 import tools.jackson.databind.ObjectMapper;
 
-@WebMvcTest(AuthController.class)
-@Import({ SecurityConfig.class, CorsConfig.class, GlobalExceptionHandler.class })
+@WebMvcTest(value = AuthController.class, properties = "app.ratelimit.capacity=1000")
+@Import({ SecurityConfig.class, CorsConfig.class, GlobalExceptionHandler.class, RateLimitFilter.class })
 class AuthControllerTest {
 
     @Autowired

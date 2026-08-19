@@ -18,6 +18,7 @@ import com.momentum.app.security.CustomUserDetailsService;
 import com.momentum.app.security.JwtAccessDeniedHandler;
 import com.momentum.app.security.JwtAuthenticationEntryPoint;
 import com.momentum.app.security.JwtAuthenticationFilter;
+import com.momentum.app.security.RateLimitFilter;
 import com.momentum.app.service.JwtService;
 
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final CustomUserDetailsService userDetailsService;
     private final JwtAuthenticationEntryPoint authenticationEntryPoint;
     private final JwtAccessDeniedHandler accessDeniedHandler;
+    private final RateLimitFilter rateLimitFilter;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -58,7 +60,8 @@ public class SecurityConfig {
             )
             .addFilterBefore(
                 new JwtAuthenticationFilter(jwtService, userDetailsService),
-                UsernamePasswordAuthenticationFilter.class);
+                UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(rateLimitFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }

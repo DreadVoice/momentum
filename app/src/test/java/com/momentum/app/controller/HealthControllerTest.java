@@ -19,12 +19,13 @@ import com.momentum.app.exception.GlobalExceptionHandler;
 import com.momentum.app.security.CustomUserDetailsService;
 import com.momentum.app.security.JwtAccessDeniedHandler;
 import com.momentum.app.security.JwtAuthenticationEntryPoint;
+import com.momentum.app.security.RateLimitFilter;
 import com.momentum.app.security.UserPrincipal;
 import com.momentum.app.service.JwtService;
 
 @WebMvcTest(HealthController.class)
 @Import({ SecurityConfig.class, CorsConfig.class, GlobalExceptionHandler.class,
-        JwtAuthenticationEntryPoint.class, JwtAccessDeniedHandler.class })
+        JwtAuthenticationEntryPoint.class, JwtAccessDeniedHandler.class, RateLimitFilter.class })
 class HealthControllerTest {
 
     private static final String TOKEN = "a.valid.token";
