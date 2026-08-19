@@ -43,7 +43,7 @@ class CorsConfigTest {
 
     @Test
     void doesNotApplyOutsideApiPaths() {
-        assertThat(configurationFor("/actuator/health")).isNull();
+        assertThat(configurationFor("/error")).isNull();
     }
 
     @Test
