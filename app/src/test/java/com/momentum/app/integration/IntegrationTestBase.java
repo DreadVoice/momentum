@@ -17,6 +17,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.RegisterRequest;
 import com.momentum.app.repository.CategoryRepository;
+import com.momentum.app.repository.RefreshTokenRepository;
 import com.momentum.app.repository.SubTaskRepository;
 import com.momentum.app.repository.TaskRepository;
 import com.momentum.app.repository.UserRepository;
@@ -45,10 +46,13 @@ abstract class IntegrationTestBase {
     @Autowired
     protected CategoryRepository categoryRepository;
     @Autowired
+    protected RefreshTokenRepository refreshTokenRepository;
+    @Autowired
     protected UserRepository userRepository;
 
     @AfterEach
     void clearDatabase() {
+        refreshTokenRepository.deleteAll();
         subTaskRepository.deleteAll();
         taskRepository.deleteAll();
         categoryRepository.deleteAll();

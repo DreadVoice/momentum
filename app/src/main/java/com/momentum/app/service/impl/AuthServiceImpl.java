@@ -1,5 +1,11 @@
 package com.momentum.app.service.impl;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.LocalDateTime;
+import java.util.HexFormat;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -8,10 +14,11 @@ import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.LoginRequest;
 import com.momentum.app.dto.auth.RefreshTokenRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
+import com.momentum.app.entity.RefreshToken;
 import com.momentum.app.entity.User;
 import com.momentum.app.exception.InvalidCredentialsException;
 import com.momentum.app.exception.ResourceAlreadyExistsException;
-import com.momentum.app.exception.ResourceNotFoundException;
+import com.momentum.app.repository.RefreshTokenRepository;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.AuthService;
 import com.momentum.app.service.JwtService;
@@ -28,6 +35,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Override
     public AuthResponse register(RegisterRequest request) {
@@ -47,11 +55,10 @@ public class AuthServiceImpl implements AuthService {
                 .password(passwordEncoder.encode(request.password()))
                 .build();
 
-        return toAuthResponse(userRepository.save(user));
+        return issueTokens(userRepository.save(user));
     }
 
     @Override
-    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String identifier = request.usernameOrEmail().trim();
 
@@ -64,11 +71,11 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid credentials");
         }
 
-        return toAuthResponse(user);
+        refreshTokenRepository.deleteByUserIdAndExpiresAtBefore(user.getId(), LocalDateTime.now());
+        return issueTokens(user);
     }
 
     @Override
-    @Transactional(readOnly = true)
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
 
@@ -76,21 +83,43 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid refresh token");
         }
 
-        Long userId = jwtService.extractUserId(refreshToken);
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(hash(refreshToken))
+                .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));
 
+        User user = stored.getUser();
         if (!jwtService.isTokenValid(refreshToken, user)) {
             throw new InvalidCredentialsException("Invalid refresh token");
         }
 
-        return toAuthResponse(user);
+        refreshTokenRepository.delete(stored);
+        return issueTokens(user);
     }
 
-    private AuthResponse toAuthResponse(User user) {
+    @Override
+    public void logout(RefreshTokenRequest request) {
+        refreshTokenRepository.deleteByTokenHash(hash(request.refreshToken()));
+    }
+
+    private AuthResponse issueTokens(User user) {
         String accessToken = jwtService.generateAccessToken(user);
         String refreshToken = jwtService.generateRefreshToken(user);
+
+        refreshTokenRepository.save(RefreshToken.builder()
+                .tokenHash(hash(refreshToken))
+                .user(user)
+                .expiresAt(jwtService.extractExpiration(refreshToken))
+                .build());
+
         return new AuthResponse(accessToken, refreshToken, user.getUsername());
+    }
+
+    private String hash(String token) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return HexFormat.of().formatHex(digest.digest(token.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is not available", e);
+        }
     }
 
 }

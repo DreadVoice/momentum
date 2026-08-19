@@ -1,7 +1,10 @@
 package com.momentum.app.service.impl;
 
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Date;
+import java.util.UUID;
 
 import javax.crypto.SecretKey;
 
@@ -72,6 +75,12 @@ public class JwtServiceImpl implements JwtService {
         return hasTokenType(token, REFRESH_TOKEN_TYPE);
     }
 
+    @Override
+    public LocalDateTime extractExpiration(String token) {
+        return LocalDateTime.ofInstant(
+                parseClaims(token).getExpiration().toInstant(), ZoneId.systemDefault());
+    }
+
     private boolean hasTokenType(String token, String expectedType) {
         try {
             return expectedType.equals(parseClaims(token).get(TOKEN_TYPE_CLAIM, String.class));
@@ -84,6 +93,7 @@ public class JwtServiceImpl implements JwtService {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())
                 .subject(String.valueOf(user.getId()))
                 .claim(TOKEN_TYPE_CLAIM, tokenType)
                 .issuedAt(now)

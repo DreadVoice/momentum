@@ -96,4 +96,12 @@ class JwtServiceImplTest {
 
         assertThat(jwtService.isAccessToken(foreignToken)).isFalse();
     }
+    @Test
+    void tokensIssuedBackToBackAreDistinct() {
+        User user = user(1L);
+
+        assertThat(jwtService.generateRefreshToken(user))
+                .isNotEqualTo(jwtService.generateRefreshToken(user));
+    }
+
 }

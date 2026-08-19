@@ -1,5 +1,7 @@
 package com.momentum.app.service;
 
+import java.time.LocalDateTime;
+
 import com.momentum.app.entity.User;
 
 public interface JwtService {
@@ -9,4 +11,5 @@ public interface JwtService {
     boolean isTokenValid(String token, User user);
     boolean isAccessToken(String token);
     boolean isRefreshToken(String token);
+    LocalDateTime extractExpiration(String token);
 }

@@ -8,6 +8,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -21,10 +22,11 @@ import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.LoginRequest;
 import com.momentum.app.dto.auth.RefreshTokenRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
+import com.momentum.app.entity.RefreshToken;
 import com.momentum.app.entity.User;
 import com.momentum.app.exception.InvalidCredentialsException;
 import com.momentum.app.exception.ResourceAlreadyExistsException;
-import com.momentum.app.exception.ResourceNotFoundException;
+import com.momentum.app.repository.RefreshTokenRepository;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.JwtService;
 
@@ -37,6 +39,8 @@ class AuthServiceImplTest {
     private PasswordEncoder passwordEncoder;
     @Mock
     private JwtService jwtService;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
     private AuthServiceImpl authService;
@@ -53,6 +57,8 @@ class AuthServiceImplTest {
     private void stubTokens(@SuppressWarnings("unused") User user) {
         when(jwtService.generateAccessToken(any(User.class))).thenReturn("access-token");
         when(jwtService.generateRefreshToken(any(User.class))).thenReturn("refresh-token");
+        when(jwtService.extractExpiration("refresh-token"))
+                .thenReturn(LocalDateTime.now().plusDays(7));
     }
 
     @Test
@@ -149,8 +155,8 @@ class AuthServiceImplTest {
         User user = existingUser();
         RefreshTokenRequest request = new RefreshTokenRequest("refresh-token");
         when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
-        when(jwtService.extractUserId("refresh-token")).thenReturn(1L);
-        when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+        when(refreshTokenRepository.findByTokenHash(anyString()))
+                .thenReturn(Optional.of(RefreshToken.builder().user(user).build()));
         when(jwtService.isTokenValid("refresh-token", user)).thenReturn(true);
         stubTokens(user);
 
@@ -170,13 +176,34 @@ class AuthServiceImplTest {
     }
 
     @Test
-    void refresh_withMissingUser_throwsResourceNotFound() {
+    void refresh_withRevokedToken_throwsInvalidCredentials() {
         RefreshTokenRequest request = new RefreshTokenRequest("refresh-token");
         when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
-        when(jwtService.extractUserId("refresh-token")).thenReturn(99L);
-        when(userRepository.findById(99L)).thenReturn(Optional.empty());
+        when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.refresh(request))
-                .isInstanceOf(ResourceNotFoundException.class);
+                .isInstanceOf(InvalidCredentialsException.class);
+    }
+
+    @Test
+    void refresh_rotatesTheStoredToken() {
+        User user = existingUser();
+        RefreshToken stored = RefreshToken.builder().user(user).build();
+        when(jwtService.isRefreshToken("refresh-token")).thenReturn(true);
+        when(refreshTokenRepository.findByTokenHash(anyString())).thenReturn(Optional.of(stored));
+        when(jwtService.isTokenValid("refresh-token", user)).thenReturn(true);
+        stubTokens(user);
+
+        authService.refresh(new RefreshTokenRequest("refresh-token"));
+
+        verify(refreshTokenRepository).delete(stored);
+        verify(refreshTokenRepository).save(any(RefreshToken.class));
+    }
+
+    @Test
+    void logout_deletesTheStoredToken() {
+        authService.logout(new RefreshTokenRequest("refresh-token"));
+
+        verify(refreshTokenRepository).deleteByTokenHash(anyString());
     }
 }
