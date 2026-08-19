@@ -2,6 +2,7 @@ package com.momentum.app.service.impl;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.LoginRequest;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class AuthServiceImpl implements AuthService {
 
     private final UserRepository userRepository;
@@ -47,6 +49,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
         String identifier = request.usernameOrEmail().trim();
 
@@ -62,6 +65,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
 

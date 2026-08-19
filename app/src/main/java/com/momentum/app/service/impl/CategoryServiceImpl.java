@@ -3,6 +3,7 @@ package com.momentum.app.service.impl;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.momentum.app.dto.category.CategoryCreateRequest;
 import com.momentum.app.dto.category.CategoryPatchRequest;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
@@ -54,6 +56,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CategoryResponse> getCategories(Long userId) {
         return categoryRepository.findByUserId(userId).stream()
                 .map(this::toResponse)
@@ -61,6 +64,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CategoryResponse getCategoryById(Long userId, Long categoryId) {
         return toResponse(findCategory(userId, categoryId));
     }

@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
@@ -27,6 +28,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
@@ -56,6 +58,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public TaskResponse getTaskById(Long userId, Long taskId) {
         return toResponse(findTask(userId, taskId));
     }
@@ -124,6 +127,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getAllTasks(Long userId) {
         return taskRepository.findByUserId(userId).stream()
                 .map(this::toResponse)
@@ -131,6 +135,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByStatus(Long userId, TaskStatus status) {
         return taskRepository.findByUserIdAndStatus(userId, status).stream()
                 .map(this::toResponse)
@@ -138,6 +143,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByPriority(Long userId, TaskPriority priority) {
         return taskRepository.findByUserIdAndPriority(userId, priority).stream()
                 .map(this::toResponse)
@@ -145,6 +151,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getTasksByCategory(Long userId, Long categoryId) {
         return taskRepository.findByUserIdAndCategoryId(userId, categoryId).stream()
                 .map(this::toResponse)
@@ -152,6 +159,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<TaskResponse> getOverdueTasks(Long userId) {
         return taskRepository.findByUserIdAndDueDateBefore(userId, LocalDate.now()).stream()
                 .map(this::toResponse)
@@ -159,6 +167,7 @@ public class TaskServiceImpl implements TaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public long countTasksByStatus(Long userId, TaskStatus status) {
         return taskRepository.countByUserIdAndStatus(userId, status);
     }

@@ -2,6 +2,7 @@ package com.momentum.app.service.impl;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.momentum.app.dto.user.ChangePasswordRequest;
 import com.momentum.app.dto.user.DeleteAccountRequest;
@@ -19,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
@@ -30,6 +32,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public UserResponse getUserById(Long userId) {
         return toResponse(findUser(userId));
     }

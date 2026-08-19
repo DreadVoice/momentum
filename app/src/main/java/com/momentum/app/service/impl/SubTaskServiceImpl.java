@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.momentum.app.dto.subtask.SubTaskCreateRequest;
 import com.momentum.app.dto.subtask.SubTaskPatchRequest;
@@ -20,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class SubTaskServiceImpl implements SubTaskService {
 
     private final SubTaskRepository subTaskRepository;
@@ -57,6 +59,7 @@ public class SubTaskServiceImpl implements SubTaskService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<SubTaskResponse> getSubTasksByTaskId(Long userId, Long taskId) {
         findTask(userId, taskId);
 
