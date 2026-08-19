@@ -296,4 +296,23 @@ class TaskControllerTest {
 
         verifyNoInteractions(taskService);
     }
+    @Test
+    void getTasks_acceptsEverySortableProperty() throws Exception {
+        when(taskService.getTasks(eq(USER_ID), isNull(), isNull(), isNull(), any()))
+                .thenReturn(page(task(30L)));
+
+        for (String property : List.of("createdAt", "dueDate", "priority", "status", "title")) {
+            mockMvc.perform(authed(get("/api/tasks").param("sort", property)))
+                    .andExpect(status().isOk());
+        }
+    }
+
+    @Test
+    void getTasks_returns400ForUnsortableProperty() throws Exception {
+        mockMvc.perform(authed(get("/api/tasks").param("sort", "password")))
+                .andExpect(status().isBadRequest());
+
+        verify(taskService, never()).getTasks(any(), any(), any(), any(), any());
+    }
+
 }

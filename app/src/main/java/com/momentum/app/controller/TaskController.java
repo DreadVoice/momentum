@@ -40,6 +40,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class TaskController {
 
+    private static final List<String> SORTABLE_PROPERTIES =
+            List.of("createdAt", "dueDate", "priority", "status", "title");
+
     private final TaskService taskService;
 
     @PostMapping
@@ -58,8 +61,20 @@ public class TaskController {
             @RequestParam(required = false) Long categoryId,
             @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
             Pageable pageable) {
+        validateSort(pageable.getSort());
         return ResponseEntity.ok(
                 taskService.getTasks(principal.id(), status, priority, categoryId, pageable));
+    }
+
+    private void validateSort(Sort sort) {
+        sort.stream()
+                .map(Sort.Order::getProperty)
+                .filter(property -> !SORTABLE_PROPERTIES.contains(property))
+                .findFirst()
+                .ifPresent(property -> {
+                    throw new IllegalArgumentException("Cannot sort by '" + property
+                            + "'. Allowed values: " + SORTABLE_PROPERTIES + ".");
+                });
     }
 
     @GetMapping("/overdue")
