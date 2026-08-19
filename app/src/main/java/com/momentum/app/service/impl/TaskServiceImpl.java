@@ -5,9 +5,11 @@ import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskPatchRequest;
@@ -128,34 +130,11 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<TaskResponse> getAllTasks(Long userId) {
-        return taskRepository.findByUserId(userId).stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TaskResponse> getTasksByStatus(Long userId, TaskStatus status) {
-        return taskRepository.findByUserIdAndStatus(userId, status).stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TaskResponse> getTasksByPriority(Long userId, TaskPriority priority) {
-        return taskRepository.findByUserIdAndPriority(userId, priority).stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<TaskResponse> getTasksByCategory(Long userId, Long categoryId) {
-        return taskRepository.findByUserIdAndCategoryId(userId, categoryId).stream()
-                .map(this::toResponse)
-                .toList();
+    public PageResponse<TaskResponse> getTasks(Long userId, TaskStatus status, TaskPriority priority,
+            Long categoryId, Pageable pageable) {
+        return PageResponse.from(taskRepository
+                .findFiltered(userId, status, priority, categoryId, pageable)
+                .map(this::toResponse));
     }
 
     @Override

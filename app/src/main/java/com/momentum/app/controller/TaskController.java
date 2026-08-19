@@ -4,9 +4,10 @@ import java.net.URI;
 import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
@@ -49,27 +51,15 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(
+    public ResponseEntity<PageResponse<TaskResponse>> getTasks(
             @AuthenticationPrincipal UserPrincipal principal,
             @RequestParam(required = false) TaskStatus status,
             @RequestParam(required = false) TaskPriority priority,
-            @RequestParam(required = false) Long categoryId) {
-
-        if (Stream.of(status, priority, categoryId).filter(Objects::nonNull).count() > 1) {
-            throw new IllegalArgumentException("Only one of status, priority or categoryId may be supplied");
-        }
-
-        Long userId = principal.id();
-        if (status != null) {
-            return ResponseEntity.ok(taskService.getTasksByStatus(userId, status));
-        }
-        if (priority != null) {
-            return ResponseEntity.ok(taskService.getTasksByPriority(userId, priority));
-        }
-        if (categoryId != null) {
-            return ResponseEntity.ok(taskService.getTasksByCategory(userId, categoryId));
-        }
-        return ResponseEntity.ok(taskService.getAllTasks(userId));
+            @RequestParam(required = false) Long categoryId,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC)
+            Pageable pageable) {
+        return ResponseEntity.ok(
+                taskService.getTasks(principal.id(), status, priority, categoryId, pageable));
     }
 
     @GetMapping("/overdue")

@@ -5,6 +5,9 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import org.mockito.ArgumentCaptor;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.never;
@@ -24,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -31,6 +35,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 
 import com.momentum.app.config.CorsConfig;
 import com.momentum.app.config.SecurityConfig;
+import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
@@ -144,47 +149,60 @@ class TaskControllerTest {
         verify(taskService).updateTask(eq(USER_ID), eq(30L), any(TaskUpdateRequest.class));
     }
 
+    private PageResponse<TaskResponse> page(TaskResponse... tasks) {
+        List<TaskResponse> content = List.of(tasks);
+        return new PageResponse<>(content, 0, 20, content.size(), 1);
+    }
+
     @Test
     void getTasks_withNoFiltersReturnsAll() throws Exception {
-        when(taskService.getAllTasks(USER_ID)).thenReturn(List.of(task(30L), task(31L)));
+        when(taskService.getTasks(eq(USER_ID), isNull(), isNull(), isNull(), any()))
+                .thenReturn(page(task(30L), task(31L)));
 
         mockMvc.perform(authed(get("/api/tasks")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(2));
-
-        verify(taskService).getAllTasks(USER_ID);
+                .andExpect(jsonPath("$.content.length()").value(2))
+                .andExpect(jsonPath("$.totalElements").value(2))
+                .andExpect(jsonPath("$.page").value(0));
     }
 
     @Test
-    void getTasks_filtersByStatus() throws Exception {
-        when(taskService.getTasksByStatus(USER_ID, TaskStatus.COMPLETED)).thenReturn(List.of(task(30L)));
+    void getTasks_passesEachFilterThrough() throws Exception {
+        when(taskService.getTasks(eq(USER_ID), eq(TaskStatus.COMPLETED), isNull(), isNull(), any()))
+                .thenReturn(page(task(30L)));
 
         mockMvc.perform(authed(get("/api/tasks").param("status", "COMPLETED")))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.length()").value(1));
+                .andExpect(jsonPath("$.content.length()").value(1));
 
-        verify(taskService).getTasksByStatus(USER_ID, TaskStatus.COMPLETED);
-        verify(taskService, never()).getAllTasks(any());
+        verify(taskService).getTasks(eq(USER_ID), eq(TaskStatus.COMPLETED), isNull(), isNull(), any());
     }
 
     @Test
-    void getTasks_filtersByPriority() throws Exception {
-        when(taskService.getTasksByPriority(USER_ID, TaskPriority.HIGH)).thenReturn(List.of(task(30L)));
+    void getTasks_appliesFiltersTogether() throws Exception {
+        when(taskService.getTasks(eq(USER_ID), eq(TaskStatus.PENDING), eq(TaskPriority.HIGH), eq(7L), any()))
+                .thenReturn(page(task(30L)));
 
-        mockMvc.perform(authed(get("/api/tasks").param("priority", "HIGH")))
-                .andExpect(status().isOk());
+        mockMvc.perform(authed(get("/api/tasks")
+                .param("status", "PENDING").param("priority", "HIGH").param("categoryId", "7")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1));
 
-        verify(taskService).getTasksByPriority(USER_ID, TaskPriority.HIGH);
+        verify(taskService).getTasks(eq(USER_ID), eq(TaskStatus.PENDING), eq(TaskPriority.HIGH), eq(7L), any());
     }
 
     @Test
-    void getTasks_filtersByCategory() throws Exception {
-        when(taskService.getTasksByCategory(USER_ID, 7L)).thenReturn(List.of(task(30L)));
+    void getTasks_passesPageRequestToTheService() throws Exception {
+        when(taskService.getTasks(eq(USER_ID), isNull(), isNull(), isNull(), any()))
+                .thenReturn(page(task(30L)));
 
-        mockMvc.perform(authed(get("/api/tasks").param("categoryId", "7")))
+        mockMvc.perform(authed(get("/api/tasks").param("page", "2").param("size", "5")))
                 .andExpect(status().isOk());
 
-        verify(taskService).getTasksByCategory(USER_ID, 7L);
+        ArgumentCaptor<Pageable> captor = ArgumentCaptor.forClass(Pageable.class);
+        verify(taskService).getTasks(eq(USER_ID), isNull(), isNull(), isNull(), captor.capture());
+        assertThat(captor.getValue().getPageNumber()).isEqualTo(2);
+        assertThat(captor.getValue().getPageSize()).isEqualTo(5);
     }
 
     @Test
@@ -197,17 +215,6 @@ class TaskControllerTest {
         verifyNoInteractions(taskService);
     }
 
-    @Test
-    void getTasks_returns400WhenFiltersAreCombined() throws Exception {
-        mockMvc.perform(authed(get("/api/tasks")
-                .param("status", "PENDING")
-                .param("priority", "HIGH")))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value(
-                        "Only one of status, priority or categoryId may be supplied"));
-
-        verifyNoInteractions(taskService);
-    }
 
     @Test
     void getOverdueTasks_returnsList() throws Exception {

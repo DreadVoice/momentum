@@ -49,47 +49,9 @@ class TaskRepositoryTest extends DataJpaTestBase {
         work = categoryRepository.save(Category.builder().name("Work").user(alice).build());
     }
 
-    @Test
-    void findByUserId_returnsOnlyThatUsersTasks() {
-        newTask(alice, "Alice A", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(alice, "Alice B", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(bob, "Bob A", TaskStatus.PENDING, TaskPriority.LOW, null, null);
 
-        List<Task> alicesTasks = taskRepository.findByUserId(alice.getId());
 
-        assertThat(alicesTasks).hasSize(2).extracting(Task::getTitle)
-                .containsExactlyInAnyOrder("Alice A", "Alice B");
-    }
 
-    @Test
-    void findByUserIdAndStatus_filtersByStatusAndOwner() {
-        newTask(alice, "Pending", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(alice, "Done", TaskStatus.COMPLETED, TaskPriority.LOW, null, null);
-        newTask(bob, "Bob done", TaskStatus.COMPLETED, TaskPriority.LOW, null, null);
-
-        assertThat(taskRepository.findByUserIdAndStatus(alice.getId(), TaskStatus.COMPLETED))
-                .extracting(Task::getTitle).containsExactly("Done");
-    }
-
-    @Test
-    void findByUserIdAndPriority_filtersByPriorityAndOwner() {
-        newTask(alice, "High", TaskStatus.PENDING, TaskPriority.HIGH, null, null);
-        newTask(alice, "Low", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(bob, "Bob high", TaskStatus.PENDING, TaskPriority.HIGH, null, null);
-
-        assertThat(taskRepository.findByUserIdAndPriority(alice.getId(), TaskPriority.HIGH))
-                .extracting(Task::getTitle).containsExactly("High");
-    }
-
-    @Test
-    void findByUserIdAndCategoryId_filtersByCategoryAndOwner() {
-        newTask(alice, "In work", TaskStatus.PENDING, TaskPriority.LOW, null, work);
-        newTask(alice, "Uncategorised", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-
-        assertThat(taskRepository.findByUserIdAndCategoryId(alice.getId(), work.getId()))
-                .extracting(Task::getTitle).containsExactly("In work");
-        assertThat(taskRepository.findByUserIdAndCategoryId(bob.getId(), work.getId())).isEmpty();
-    }
 
     @Test
     void findByUserIdAndDueDateBefore_excludesTodayAndFuture() {

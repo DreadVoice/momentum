@@ -15,13 +15,6 @@ import com.momentum.app.enums.TaskStatus;
 
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
-    List<Task> findByUserId(Long userId);
-    List<Task> findByUserIdAndStatus(Long userId, TaskStatus status);
-
-    List<Task> findByUserIdAndCategoryId(Long userId, Long categoryId);
-
-    List<Task> findByUserIdAndPriority(Long userId, TaskPriority priority);
-
     List<Task> findByUserIdAndDueDateBefore(Long userId, LocalDate date);
 
     @Query("select t from Task t where t.user.id = :userId "

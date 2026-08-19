@@ -116,12 +116,15 @@ class TaskOwnershipIntegrationTest extends IntegrationTestBase {
         createTask(aliceToken, "Alice's private task");
         createTask(bobToken, "Bob's own task");
 
-        ResponseEntity<TaskResponse[]> bobsTasks = rest.exchange(
-                "/api/tasks", HttpMethod.GET, authedRequest(bobToken), TaskResponse[].class);
+        ResponseEntity<String> bobsTasks = rest.exchange(
+                "/api/tasks", HttpMethod.GET, authedRequest(bobToken), String.class);
 
         assertThat(bobsTasks.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(bobsTasks.getBody()).hasSize(1);
-        assertThat(bobsTasks.getBody()[0].title()).isEqualTo("Bob's own task");
+        assertThat(bobsTasks.getBody())
+                .contains("\"content\":")
+                .contains("\"totalElements\":1")
+                .contains("Bob's own task")
+                .doesNotContain("Alice's private task");
     }
 
     @Test

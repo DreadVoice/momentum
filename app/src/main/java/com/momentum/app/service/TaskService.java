@@ -2,6 +2,9 @@ package com.momentum.app.service;
 
 import java.util.List;
 
+import org.springframework.data.domain.Pageable;
+
+import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
@@ -16,10 +19,8 @@ public interface TaskService {
     TaskResponse patchTask(Long userId, Long taskId, TaskPatchRequest request);
     void deleteTask(Long userId, Long taskId);
 
-    List<TaskResponse> getAllTasks(Long userId);
-    List<TaskResponse> getTasksByStatus(Long userId, TaskStatus status);
-    List<TaskResponse> getTasksByPriority(Long userId, TaskPriority priority);
-    List<TaskResponse> getTasksByCategory(Long userId, Long categoryId);
+    PageResponse<TaskResponse> getTasks(Long userId, TaskStatus status, TaskPriority priority,
+            Long categoryId, Pageable pageable);
     List<TaskResponse> getOverdueTasks(Long userId);
     long countTasksByStatus(Long userId, TaskStatus status);
 }
