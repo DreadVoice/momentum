@@ -41,7 +41,6 @@ public class UserServiceImpl implements UserService {
         renameUsername(user, request.username());
         changeEmail(user, request.email());
         user.setProfilePhoto(normalizeProfilePhoto(request.profilePhoto()));
-        user.setUpdatedAt(java.time.LocalDateTime.now());
         return toResponse(userRepository.save(user));
     }
 
@@ -59,7 +58,6 @@ public class UserServiceImpl implements UserService {
             user.setProfilePhoto(normalizeProfilePhoto(request.profilePhoto()));
         }
 
-        user.setUpdatedAt(java.time.LocalDateTime.now());
         return toResponse(userRepository.save(user));
     }
 
@@ -91,7 +89,6 @@ public class UserServiceImpl implements UserService {
             throw new InvalidCredentialsException("Current password is incorrect");
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
-        user.setUpdatedAt(java.time.LocalDateTime.now());
         userRepository.save(user);
     }
 
