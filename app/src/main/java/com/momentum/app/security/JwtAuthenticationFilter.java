@@ -46,8 +46,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void authenticate(String token, HttpServletRequest request) {
         try {
-            // Rejects refresh tokens, expired tokens and bad signatures in one step:
-            // the type claim is only readable after the signature and expiry check pass.
             if (!jwtService.isAccessToken(token)) {
                 return;
             }
@@ -60,7 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
-            // Deleted user, tampered subject, malformed token: stay unauthenticated.
+            // An invalid token must never leave an authenticated context.
             SecurityContextHolder.clearContext();
         }
     }

@@ -7,8 +7,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.mysql.MySQLContainer;
 
 /**
- * Repository slice against a real MySQL. Flyway builds the schema and Hibernate validates
- * against it, so these tests exercise the same DDL production runs.
+ * Repository tests backed by MySQL and Flyway.
  */
 @DataJpaTest(properties = {
         "spring.jpa.hibernate.ddl-auto=validate",
@@ -18,8 +17,6 @@ import org.testcontainers.mysql.MySQLContainer;
 @Testcontainers(disabledWithoutDocker = true)
 abstract class DataJpaTestBase {
 
-    // No @Container: JUnit stops a static container after each class, and every subclass
-    // shares this one field. Spring Boot starts it instead and keeps it up for the JVM.
     @ServiceConnection
     static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
 }

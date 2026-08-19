@@ -24,8 +24,7 @@ import com.momentum.app.repository.UserRepository;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT, properties = {
         "app.jwt.secret=integration-test-signing-key-long-enough-for-hs256!",
         "app.cors.allowed-origins=http://localhost:5173",
-        // Flyway builds the schema and Hibernate validates against it, so a migration that
-        // drifts from the entities fails the suite rather than passing silently.
+        // Validate entities against the Flyway-managed schema.
         "spring.jpa.hibernate.ddl-auto=validate",
         "spring.jpa.show-sql=false"
 })
@@ -33,8 +32,6 @@ import com.momentum.app.repository.UserRepository;
 @Testcontainers(disabledWithoutDocker = true)
 abstract class IntegrationTestBase {
 
-    // No @Container: JUnit stops a static container after each class, and every subclass
-    // shares this one field. Spring Boot starts it instead and keeps it up for the JVM.
     @ServiceConnection
     static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
 
