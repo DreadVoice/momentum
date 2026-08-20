@@ -8,6 +8,8 @@ import { TaskCardMenu } from './TaskCardMenu'
 interface TaskCardProps {
   readonly task: TaskResponse
   readonly isPending: boolean
+  readonly isSelected: boolean
+  readonly onSelect: (task: TaskResponse) => void
   readonly onEdit: (task: TaskResponse) => void
   readonly onMove: (taskId: number, status: TaskStatus) => void
   readonly onDelete: (task: TaskResponse) => void
@@ -17,14 +19,43 @@ interface TaskCardProps {
  * Presentational card. Receives everything it renders and owns no state, so it
  * is safe to memoise: the parent passes stable `useCallback` handlers.
  */
-function TaskCardComponent({ task, isPending, onEdit, onMove, onDelete }: TaskCardProps) {
+function TaskCardComponent({
+  task,
+  isPending,
+  isSelected,
+  onSelect,
+  onEdit,
+  onMove,
+  onDelete,
+}: TaskCardProps) {
   const overdue = isOverdue(task.dueDate) && task.status !== 'COMPLETED'
   const hasSubTasks = task.subTaskCount > 0
 
+  const className = [
+    'task-card',
+    isPending ? 'task-card--pending' : '',
+    isSelected ? 'task-card--selected' : '',
+  ]
+    .filter((token) => token.length > 0)
+    .join(' ')
+
   return (
-    <article className={isPending ? 'task-card task-card--pending' : 'task-card'}>
+    <article className={className}>
       <header className="task-card__header">
-        <h3 className="task-card__title">{task.title}</h3>
+        {/*
+          A button rather than a click handler on the article: opening the
+          detail panel must be reachable by keyboard and announced as an action.
+        */}
+        <button
+          type="button"
+          className="task-card__open"
+          aria-pressed={isSelected}
+          onClick={() => {
+            onSelect(task)
+          }}
+        >
+          {task.title}
+        </button>
         {isPending ? (
           <Spinner label={`Updating ${task.title}`} size="sm" />
         ) : (

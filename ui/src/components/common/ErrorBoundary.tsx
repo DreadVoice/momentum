@@ -44,12 +44,12 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
         <h2>{fallbackTitle}</h2>
         <p>{error.message}</p>
         <div className="error-boundary__actions">
-          <button type="button" className="btn btn--primary" onClick={this.handleReset}>
+          <button type="button" className="m-primary" onClick={this.handleReset}>
             Try again
           </button>
           <button
             type="button"
-            className="btn btn--ghost"
+            className="m-oauth"
             onClick={() => {
               window.location.reload()
             }}

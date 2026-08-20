@@ -28,6 +28,7 @@ export interface UseTaskBoardResult {
   readonly mutationError: string | null
   readonly pendingTaskId: number | null
   readonly refresh: () => void
+  readonly reloadTask: (taskId: number) => void
   readonly loadMore: () => void
   readonly createTask: (body: TaskCreateRequest) => Promise<void>
   readonly updateTask: (taskId: number, body: TaskUpdateRequest) => Promise<void>
@@ -188,6 +189,25 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     setTasks((current) => current.map((task) => (task.id === updated.id ? updated : task)))
   }, [])
 
+  /**
+   * Re-reads one task after a change made outside the board, such as adding or
+   * completing a subtask, so its counters stay accurate without refetching the
+   * whole page. A failure is silent: the counters are cosmetic.
+   */
+  const reloadTask = useCallback(
+    (taskId: number) => {
+      tasksApi
+        .get(taskId)
+        .then((updated) => {
+          if (mountedRef.current) {
+            replaceTask(updated)
+          }
+        })
+        .catch(() => undefined)
+    },
+    [replaceTask],
+  )
+
   const createTask = useCallback(
     (body: TaskCreateRequest): Promise<void> =>
       runMutation(null, async () => {
@@ -256,6 +276,7 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     mutationError,
     pendingTaskId,
     refresh,
+    reloadTask,
     loadMore,
     createTask,
     updateTask,

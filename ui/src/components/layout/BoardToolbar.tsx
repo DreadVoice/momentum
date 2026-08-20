@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback } from 'react'
 import { Spinner } from '../common/Spinner'
 import { PRIORITY_LABELS, SORT_LABELS, STATUS_LABELS } from '../../features/board/boardConfig'
 import {
@@ -13,33 +13,27 @@ import {
   type TaskStatus,
 } from '../../types/api'
 
-interface NavBarProps {
-  readonly username: string
+interface BoardToolbarProps {
   readonly query: TaskQuery
   readonly categories: readonly CategoryResponse[]
   readonly categoriesUnavailable: boolean
   readonly isBusy: boolean
   readonly onQueryChange: (next: TaskQuery) => void
   readonly onNewTask: () => void
-  readonly onLogout: () => void
 }
 
 /**
- * Presentational control bar: sorting, category and priority filtering, the
- * New Task entry point and the session menu. All query state is owned above.
+ * Sorting and filtering controls for the board. Every value is narrowed against
+ * the sets the API accepts, so an unrecognised option can never be sent.
  */
-export function NavBar({
-  username,
+export function BoardToolbar({
   query,
   categories,
   categoriesUnavailable,
   isBusy,
   onQueryChange,
   onNewTask,
-  onLogout,
-}: NavBarProps) {
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
-
+}: BoardToolbarProps) {
   const handleCategoryChange = useCallback(
     (value: string) => {
       onQueryChange({ ...query, categoryId: value === '' ? null : Number(value) })
@@ -69,8 +63,7 @@ export function NavBar({
 
   const handleSortChange = useCallback(
     (value: string) => {
-      // Guarded against the server-side whitelist in TaskController; an
-      // unrecognised value would come back as a 400.
+      // Guarded against the whitelist in TaskController; anything else is a 400.
       const parsed: SortableTaskProperty | undefined = SORTABLE_TASK_PROPERTIES.find(
         (candidate) => candidate === value,
       )
@@ -84,55 +77,38 @@ export function NavBar({
     onQueryChange({ ...query, sortDirection: next })
   }, [query, onQueryChange])
 
-  const handleLogout = useCallback(() => {
-    setIsLoggingOut(true)
-    onLogout()
-  }, [onLogout])
-
   return (
-    <header className="navbar">
-      <div className="navbar__brand">
-        <span className="navbar__logo" aria-hidden="true">
-          M
-        </span>
-        <div>
-          <p className="navbar__title">Momentum</p>
-          <p className="navbar__user">Signed in as {username}</p>
-        </div>
-      </div>
-
-      <div className="navbar__controls" role="group" aria-label="Filter and sort tasks">
-        <label className="navbar__control">
-          <span className="navbar__control-label">Category</span>
+    <div className="toolbar">
+      <div className="toolbar__filters" role="group" aria-label="Filter and sort tasks">
+        <label className="field toolbar__field">
+          <span className="field__label">Category</span>
           <select
-            className="navbar__select"
+            className="field__input"
             value={query.categoryId === null ? '' : String(query.categoryId)}
             disabled={categoriesUnavailable || categories.length === 0}
             onChange={(event) => {
               handleCategoryChange(event.target.value)
             }}
           >
-            <option value="">
-              {categoriesUnavailable ? 'Unavailable' : 'All categories'}
-            </option>
+            <option value="">{categoriesUnavailable ? 'Unavailable' : 'All'}</option>
             {categories.map((category) => (
               <option key={category.id} value={String(category.id)}>
-                {category.name} ({category.taskCount})
+                {category.name}
               </option>
             ))}
           </select>
         </label>
 
-        <label className="navbar__control">
-          <span className="navbar__control-label">Board</span>
+        <label className="field toolbar__field">
+          <span className="field__label">Board</span>
           <select
-            className="navbar__select"
+            className="field__input"
             value={query.status ?? ''}
             onChange={(event) => {
               handleStatusChange(event.target.value)
             }}
           >
-            <option value="">All boards</option>
+            <option value="">All</option>
             {TASK_STATUSES.map((status) => (
               <option key={status} value={status}>
                 {STATUS_LABELS[status]}
@@ -141,16 +117,16 @@ export function NavBar({
           </select>
         </label>
 
-        <label className="navbar__control">
-          <span className="navbar__control-label">Priority</span>
+        <label className="field toolbar__field">
+          <span className="field__label">Priority</span>
           <select
-            className="navbar__select"
+            className="field__input"
             value={query.priority ?? ''}
             onChange={(event) => {
               handlePriorityChange(event.target.value)
             }}
           >
-            <option value="">Any priority</option>
+            <option value="">Any</option>
             {TASK_PRIORITIES.map((priority) => (
               <option key={priority} value={priority}>
                 {PRIORITY_LABELS[priority]}
@@ -159,10 +135,10 @@ export function NavBar({
           </select>
         </label>
 
-        <label className="navbar__control">
-          <span className="navbar__control-label">Sort by</span>
+        <label className="field toolbar__field">
+          <span className="field__label">Sort</span>
           <select
-            className="navbar__select"
+            className="field__input"
             value={query.sortBy}
             onChange={(event) => {
               handleSortChange(event.target.value)
@@ -178,7 +154,7 @@ export function NavBar({
 
         <button
           type="button"
-          className="btn btn--ghost btn--sm"
+          className="m-oauth m-sm toolbar__direction"
           onClick={handleDirectionToggle}
           aria-label={
             query.sortDirection === 'asc'
@@ -186,24 +162,16 @@ export function NavBar({
               : 'Sorted descending. Switch to ascending.'
           }
         >
-          {query.sortDirection === 'asc' ? 'Asc' : 'Desc'}
+          {query.sortDirection === 'asc' ? '↑ Asc' : '↓ Desc'}
         </button>
       </div>
 
-      <div className="navbar__actions">
+      <div className="toolbar__actions">
         {isBusy && <Spinner label="Loading tasks" size="sm" />}
-        <button type="button" className="btn btn--primary" onClick={onNewTask}>
+        <button type="button" className="m-primary" onClick={onNewTask}>
           New Task
         </button>
-        <button
-          type="button"
-          className="btn btn--ghost"
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-        >
-          {isLoggingOut ? 'Signing out' : 'Sign out'}
-        </button>
       </div>
-    </header>
+    </div>
   )
 }

@@ -6,6 +6,8 @@ interface BoardColumnProps {
   readonly status: TaskStatus
   readonly tasks: readonly TaskResponse[]
   readonly pendingTaskId: number | null
+  readonly selectedTaskId: number | null
+  readonly onSelect: (task: TaskResponse) => void
   readonly onEdit: (task: TaskResponse) => void
   readonly onMove: (taskId: number, status: TaskStatus) => void
   readonly onDelete: (task: TaskResponse) => void
@@ -16,6 +18,8 @@ export function BoardColumn({
   status,
   tasks,
   pendingTaskId,
+  selectedTaskId,
+  onSelect,
   onEdit,
   onMove,
   onDelete,
@@ -42,6 +46,8 @@ export function BoardColumn({
               key={task.id}
               task={task}
               isPending={pendingTaskId === task.id}
+              isSelected={selectedTaskId === task.id}
+              onSelect={onSelect}
               onEdit={onEdit}
               onMove={onMove}
               onDelete={onDelete}

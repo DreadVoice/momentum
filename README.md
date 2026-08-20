@@ -2,7 +2,7 @@
 
 A task manager built as a full-stack project: a Spring Boot REST API paired with a React web client.
 
-**The backend is complete and tested. The web client has not been built yet.** `ui/` holds a bare Vite + React + TypeScript scaffold. Everything in the API is exercised through tests and HTTP, not through a user interface.
+**The backend is complete and tested. The web client covers the full API surface.** `ui/` holds a React + TypeScript client: board, task detail with subtasks, categories and account settings. Everything in the API is exercised through tests and HTTP, not through a user interface.
 
 Momentum lets you keep tasks, sort them into categories, break them into subtasks, and see what is overdue. Accounts are isolated: no request can reach another account's data.
 
@@ -15,7 +15,7 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 | Database + migrations | Done: MySQL with Flyway |
 | API documentation | Done: OpenAPI 3 via springdoc |
 | Tests | Unit, slice, and container-backed integration |
-| Web client | **Not started**, scaffolding only |
+| Web client | Done: board, subtasks, categories, account |
 | Deployment | Not set up |
 
 ## Repository layout
@@ -23,7 +23,7 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 ```
 momentum
 ├── app                  Spring Boot backend (Java 21, Maven)
-├── ui                   React web client (scaffolding only)
+├── ui                   React web client (Vite, TypeScript)
 ├── docker-compose.yml   MySQL for local development
 └── .env.example         Template for the environment variables the app needs
 ```
@@ -146,9 +146,15 @@ The integration suite includes an adversarial one: two users register, and one t
 
 ## The frontend
 
-`ui/` is set up but empty of real work: React 19, Vite, and TypeScript are wired together, and `npm run dev` serves a placeholder page.
+`ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three
+task boards with sorting and filtering, a task detail panel with subtask
+management, category CRUD, and account settings. It ships a single light theme.
 
-One thing worth knowing before building it: the API allows browser requests from origins listed in `CORS_ALLOWED_ORIGINS`, which defaults to the Vite dev server at `http://localhost:5173`. Dev works out of the box; a deployed client needs its own origin added there.
+The API allows browser requests from origins listed in `CORS_ALLOWED_ORIGINS`,
+which defaults to the Vite dev server at `http://localhost:5173`, so development
+works out of the box; a deployed client needs its own origin added there.
+
+See [ui/README.md](ui/README.md) for commands and design notes.
 
 ## Roadmap
 

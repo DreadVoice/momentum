@@ -3,7 +3,12 @@ import { authApi } from '../api/authApi'
 import { setUnauthorizedHandler } from '../api/httpClient'
 import { isAbortError, isApiError } from '../lib/ApiError'
 import { tokenStorage } from '../lib/tokenStorage'
-import type { AuthResponse, LoginRequest, RegisterRequest } from '../types/api'
+import type {
+  AuthResponse,
+  LoginRequest,
+  RegisterRequest,
+  UserResponse,
+} from '../types/api'
 import { AuthContext, type AuthContextValue, type AuthState } from './authContext'
 
 interface AuthProviderProps {
@@ -127,9 +132,17 @@ export function AuthProvider({ children }: AuthProviderProps) {
     endSession(false)
   }, [endSession])
 
+  const applyUser = useCallback((user: UserResponse) => {
+    // Only meaningful while authenticated; ignoring it otherwise keeps the
+    // state machine from resurrecting a session that has already ended.
+    setState((current) =>
+      current.kind === 'authenticated' ? { kind: 'authenticated', user } : current,
+    )
+  }, [])
+
   const value = useMemo<AuthContextValue>(
-    () => ({ state, login, register, logout }),
-    [state, login, register, logout],
+    () => ({ state, login, register, logout, applyUser }),
+    [state, login, register, logout, applyUser],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

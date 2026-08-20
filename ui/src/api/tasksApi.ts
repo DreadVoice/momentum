@@ -33,6 +33,10 @@ export const tasksApi = {
     })
   },
 
+  get(taskId: number, signal?: AbortSignal): Promise<TaskResponse> {
+    return request<TaskResponse>(`/api/tasks/${taskId}`, { signal })
+  },
+
   create(body: TaskCreateRequest): Promise<TaskResponse> {
     return request<TaskResponse>('/api/tasks', { method: 'POST', body })
   },
@@ -49,6 +53,11 @@ export const tasksApi = {
 
   remove(taskId: number): Promise<void> {
     return requestNoContent(`/api/tasks/${taskId}`, { method: 'DELETE' })
+  },
+
+  /** Tasks whose due date has passed and that are not completed. */
+  overdue(signal?: AbortSignal): Promise<readonly TaskResponse[]> {
+    return request<readonly TaskResponse[]>('/api/tasks/overdue', { signal })
   },
 
   stats(signal?: AbortSignal): Promise<TaskStatsResponse> {

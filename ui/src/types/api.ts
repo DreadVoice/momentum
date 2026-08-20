@@ -150,6 +150,14 @@ export interface TaskPatchRequest {
 }
 
 /** `com.momentum.app.dto.category.CategoryResponse` */
+export interface CategoryCreateRequest {
+  readonly name: string
+}
+
+export interface CategoryUpdateRequest {
+  readonly name: string
+}
+
 export interface CategoryResponse {
   readonly id: number
   readonly name: string
@@ -169,3 +177,49 @@ export interface TaskQuery {
   readonly sortBy: SortableTaskProperty
   readonly sortDirection: SortDirection
 }
+
+export interface SubTaskCreateRequest {
+  readonly title: string
+}
+
+/** Full replacement (PUT); `completed` is primitive on the backend record. */
+export interface SubTaskUpdateRequest {
+  readonly title: string
+  readonly completed: boolean
+}
+
+export interface SubTaskPatchRequest {
+  readonly title?: string
+  readonly completed?: boolean
+}
+
+/** `profilePhoto` is validated with @URL, so an empty string is not accepted. */
+export interface UserUpdateRequest {
+  readonly username: string
+  readonly email: string
+  readonly profilePhoto: string | null
+}
+
+export interface ChangePasswordRequest {
+  readonly currentPassword: string
+  readonly newPassword: string
+}
+
+export interface DeleteAccountRequest {
+  readonly password: string
+}
+
+/** Constraints mirrored from the Jakarta annotations on the backend records. */
+export const LIMITS = {
+  usernameMin: 3,
+  usernameMax: 50,
+  passwordMin: 8,
+  passwordMax: 100,
+  taskTitleMax: 255,
+  taskDescriptionMax: 1000,
+  subTaskTitleMax: 50,
+  categoryNameMax: 255,
+  profilePhotoMax: 512,
+} as const
+
+export const USERNAME_PATTERN = /^[A-Za-z0-9_-]+$/

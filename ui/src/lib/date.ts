@@ -51,3 +51,47 @@ export function formatDueDate(value: string): string {
 export function isOverdue(dueDate: string | null): boolean {
   return dueDate !== null && dueDate < todayAsIsoDate()
 }
+
+/**
+ * The API exchanges `LocalDateTime` as `YYYY-MM-DDTHH:mm:ss` with no zone.
+ * It is treated as local wall-clock time, which is what the server recorded.
+ */
+export function formatTimestamp(value: string): string {
+  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value)
+
+  if (match === null) {
+    return value
+  }
+
+  const [, year, month, day, hour, minute] = match
+
+  if (
+    year === undefined ||
+    month === undefined ||
+    day === undefined ||
+    hour === undefined ||
+    minute === undefined
+  ) {
+    return value
+  }
+
+  const date = new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+  )
+
+  if (Number.isNaN(date.getTime())) {
+    return value
+  }
+
+  return date.toLocaleString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}

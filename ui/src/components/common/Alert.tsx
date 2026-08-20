@@ -1,5 +1,5 @@
 interface AlertProps {
-  readonly tone: 'error' | 'info'
+  readonly tone: 'error' | 'info' | 'success'
   readonly message: string
   readonly onRetry?: () => void
   readonly onDismiss?: () => void
@@ -12,14 +12,14 @@ export function Alert({ tone, message, onRetry, onDismiss }: AlertProps) {
       <p className="alert__message">{message}</p>
       <div className="alert__actions">
         {onRetry !== undefined && (
-          <button type="button" className="btn btn--ghost btn--sm" onClick={onRetry}>
+          <button type="button" className="m-oauth m-sm" onClick={onRetry}>
             Retry
           </button>
         )}
         {onDismiss !== undefined && (
           <button
             type="button"
-            className="btn btn--ghost btn--sm"
+            className="m-oauth m-sm"
             onClick={onDismiss}
             aria-label="Dismiss message"
           >

@@ -15,6 +15,8 @@ export interface AuthContextValue {
   readonly login: (credentials: LoginRequest) => Promise<void>
   readonly register: (details: RegisterRequest) => Promise<void>
   readonly logout: () => Promise<void>
+  /** Replaces the cached user after a successful profile update. */
+  readonly applyUser: (user: UserResponse) => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

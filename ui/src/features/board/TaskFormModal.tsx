@@ -283,10 +283,10 @@ export function TaskFormModal({
         )}
 
         <div className="task-form__actions">
-          <button type="button" className="btn btn--ghost" onClick={onClose} disabled={isSubmitting}>
+          <button type="button" className="m-oauth" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </button>
-          <button type="submit" className="btn btn--primary" disabled={isSubmitting}>
+          <button type="submit" className="m-primary" disabled={isSubmitting}>
             {isSubmitting && <Spinner label="Saving" size="sm" />}
             {isEditing ? 'Save changes' : 'Create task'}
           </button>

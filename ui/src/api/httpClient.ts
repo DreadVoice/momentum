@@ -22,6 +22,14 @@ export interface RequestOptions {
   readonly authenticated?: boolean
   readonly query?: Readonly<Record<string, QueryValue>>
   readonly signal?: AbortSignal | undefined
+  /**
+   * Set to false for endpoints where 401 is a domain answer rather than a
+   * token problem - the password check and account deletion both reject a
+   * wrong password with 401. Refreshing there would rotate a refresh token
+   * for nothing and, if the refresh itself failed, would sign the user out
+   * because they mistyped their password.
+   */
+  readonly refreshOn401?: boolean
 }
 
 type UnauthorizedHandler = () => void
@@ -151,8 +159,9 @@ async function performRequest(path: string, options: RequestOptions): Promise<Re
   }
 
   const response = await send(path, options, tokens?.accessToken ?? null)
+  const shouldRefresh = options.refreshOn401 ?? true
 
-  if (response.status !== 401 || !authenticated) {
+  if (response.status !== 401 || !authenticated || !shouldRefresh) {
     return response
   }
 
