@@ -8,16 +8,12 @@ interface ConfirmDialogProps {
   readonly title: string
   readonly body: string
   readonly confirmLabel: string
-  /** Typed confirmation for irreversible actions; omit for ordinary ones. */
   readonly confirmationPhrase?: string
   readonly onConfirm: () => Promise<void>
   readonly onClose: () => void
 }
 
-/**
- * Replaces `window.confirm` so destructive actions stay inside the design
- * system and can report their own failure without losing the dialog.
- */
+
 export function ConfirmDialog({
   title,
   body,

@@ -1,6 +1,5 @@
 import { TaskPriority, TaskStatus, type SortableTaskProperty } from '../../types/api'
 
-/** Column headings for the three boards. Keys are the backend enum, verbatim. */
 export const STATUS_LABELS: Readonly<Record<TaskStatus, string>> = {
   [TaskStatus.PENDING]: 'Pending',
   [TaskStatus.IN_PROGRESS]: 'In Progress',

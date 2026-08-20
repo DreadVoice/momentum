@@ -1,11 +1,3 @@
-/*
- * Momentum design system - warm paper.
- *
- * A single light theme is implemented. Tokens are declared on [data-theme='light']
- * (set on <html>) so that additional modes can be layered later without
- * restructuring, but no dark or black mode exists today.
- */
-
 [data-theme='light'] {
   --page-bg: #e8e2d9;
   --bg: #f6f2ec;

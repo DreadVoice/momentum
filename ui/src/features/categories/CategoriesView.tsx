@@ -12,12 +12,7 @@ interface CategoryRowProps {
   readonly onRequestDelete: (category: CategoryResponse) => void
 }
 
-/**
- * Presentational row. Deletion is refused locally while the category still
- * holds tasks: `tasks.category_id` is a RESTRICT foreign key with no cascade,
- * so the API would fail with an unhandled database error rather than a
- * meaningful message.
- */
+
 function CategoryRow({ category, isPending, onRename, onRequestDelete }: CategoryRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState(category.name)
@@ -101,7 +96,6 @@ function CategoryRow({ category, isPending, onRename, onRequestDelete }: Categor
   )
 }
 
-/** Container for category CRUD. */
 export function CategoriesView() {
   const manager = useCategoryManager()
   const [draft, setDraft] = useState('')

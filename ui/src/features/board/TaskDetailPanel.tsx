@@ -14,10 +14,6 @@ interface TaskDetailPanelProps {
   readonly onClose: () => void
 }
 
-/**
- * The right-hand half of the board's split layout. Presentational apart from
- * the subtask list it hosts, which owns its own fetch.
- */
 export function TaskDetailPanel({
   task,
   isPending,

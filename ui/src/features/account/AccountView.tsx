@@ -18,7 +18,6 @@ interface ProfileFormProps {
   readonly user: UserResponse
 }
 
-/** Profile details. Uses PUT, so every field is sent on each save. */
 function ProfileForm({ user }: ProfileFormProps) {
   const { applyUser } = useAuth()
   const [username, setUsername] = useState(user.username)
@@ -48,8 +47,6 @@ function ProfileForm({ user }: ProfileFormProps) {
 
     const photo = profilePhoto.trim()
     if (photo.length > 0) {
-      // The backend validates with @URL, so anything that is not an absolute
-      // URL is rejected there; catching it here avoids a pointless round-trip.
       if (!/^https?:\/\/\S+$/i.test(photo)) {
         errors.profilePhoto = 'Enter a full URL starting with http:// or https://'
       } else if (photo.length > LIMITS.profilePhotoMax) {
@@ -80,7 +77,6 @@ function ProfileForm({ user }: ProfileFormProps) {
         .update({
           username: username.trim(),
           email: email.trim(),
-          // An empty string fails @URL validation, so absence is sent as null.
           profilePhoto: photo.length > 0 ? photo : null,
         })
         .then((updated) => {
@@ -184,7 +180,6 @@ function ProfileForm({ user }: ProfileFormProps) {
   )
 }
 
-/** Password change. The session survives it; the API does not revoke tokens. */
 function PasswordForm() {
   const [currentPassword, setCurrentPassword] = useState('')
   const [newPassword, setNewPassword] = useState('')
@@ -308,8 +303,6 @@ function DangerZone({ username }: { readonly username: string }) {
 
   const handleDelete = useCallback(async (): Promise<void> => {
     await usersApi.deleteAccount({ password })
-    // The account is gone, so the local session must end. `logout` is
-    // best-effort against a server that no longer knows this user.
     await logout()
   }, [password, logout])
 
@@ -367,7 +360,6 @@ function DangerZone({ username }: { readonly username: string }) {
   )
 }
 
-/** Container for account settings, laid out as a split panel. */
 export function AccountView({ user }: AccountViewProps) {
   return (
     <div className="panel-split">

@@ -5,11 +5,7 @@ interface WindowChromeProps {
   readonly children: ReactNode
 }
 
-/**
- * Faux window chrome that frames the application: three dots and the app name
- * on a hairline-separated bar. Decorative only, so it is hidden from assistive
- * technology.
- */
+
 export function WindowChrome({ name, children }: WindowChromeProps) {
   return (
     <div className="chrome">

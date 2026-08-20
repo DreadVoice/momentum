@@ -15,10 +15,7 @@ interface TaskCardProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-/**
- * Presentational card. Receives everything it renders and owns no state, so it
- * is safe to memoise: the parent passes stable `useCallback` handlers.
- */
+
 function TaskCardComponent({
   task,
   isPending,
@@ -42,10 +39,6 @@ function TaskCardComponent({
   return (
     <article className={className}>
       <header className="task-card__header">
-        {/*
-          A button rather than a click handler on the article: opening the
-          detail panel must be reachable by keyboard and announced as an action.
-        */}
         <button
           type="button"
           className="task-card__open"

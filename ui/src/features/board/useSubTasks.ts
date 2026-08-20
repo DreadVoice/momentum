@@ -19,11 +19,6 @@ export interface UseSubTasksResult {
   readonly dismissError: () => void
 }
 
-/**
- * Subtasks for one task. Kept separate from the board hook because the list is
- * only fetched when a task is opened, and its mutations do not invalidate the
- * board beyond the counters the caller refreshes.
- */
 export function useSubTasks(taskId: number): UseSubTasksResult {
   const [subTasks, setSubTasks] = useState<readonly SubTaskResponse[]>([])
   const [status, setStatus] = useState<SubTasksStatus>('loading')

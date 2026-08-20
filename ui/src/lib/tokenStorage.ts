@@ -1,14 +1,3 @@
-/**
- * Persistence for the JWT pair.
- *
- * The API sets `allowCredentials=false` (see `CorsConfig`), so cookie-based
- * sessions are not available to a cross-origin browser client and the tokens
- * have to be readable by JavaScript. `localStorage` is therefore the deliberate
- * choice: it survives reloads and, unlike an in-memory store, does not force a
- * refresh round-trip on every page load. The trade-off is XSS exposure, which
- * is mitigated by never rendering untrusted HTML.
- */
-
 const ACCESS_TOKEN_KEY = 'momentum.accessToken'
 const REFRESH_TOKEN_KEY = 'momentum.refreshToken'
 
@@ -17,7 +6,6 @@ export interface TokenPair {
   readonly refreshToken: string
 }
 
-/** Storage throws in private-mode Safari and when quotas are exhausted. */
 function safeRead(key: string): string | null {
   try {
     const value = window.localStorage.getItem(key)
@@ -31,7 +19,6 @@ function safeWrite(key: string, value: string): void {
   try {
     window.localStorage.setItem(key, value)
   } catch {
-    /* Storage is unavailable; the session degrades to in-tab only. */
   }
 }
 
@@ -39,7 +26,6 @@ function safeRemove(key: string): void {
   try {
     window.localStorage.removeItem(key)
   } catch {
-    /* Nothing further can be done if removal fails. */
   }
 }
 

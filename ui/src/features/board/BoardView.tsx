@@ -17,7 +17,6 @@ import { useCategories } from './useCategories'
 import { useTaskBoard } from './useTaskBoard'
 import { useTaskStats } from './useTaskStats'
 
-/** Closed, creating, or editing a specific task. */
 type DialogState =
   | { readonly mode: 'closed' }
   | { readonly mode: 'new' }
@@ -31,16 +30,11 @@ const INITIAL_QUERY: TaskQuery = {
   sortDirection: 'desc',
 }
 
-/**
- * Container for the board: owns the query, the selection and the dialogs, and
- * wires the toolbar and the detail panel to the data hooks.
- */
 export function BoardView() {
   const [query, setQuery] = useState<TaskQuery>(INITIAL_QUERY)
   const [dialog, setDialog] = useState<DialogState>({ mode: 'closed' })
   const [selectedTaskId, setSelectedTaskId] = useState<number | null>(null)
   const [pendingDelete, setPendingDelete] = useState<TaskResponse | null>(null)
-  // Bumped after any mutation so the account-wide counters re-read.
   const [statsRevision, setStatsRevision] = useState(0)
 
   const { categories, hasFailed: categoriesFailed } = useCategories()
@@ -73,8 +67,6 @@ export function BoardView() {
 
   const handleMove = useCallback(
     (taskId: number, status: TaskStatus) => {
-      // Failures surface through `mutationError`; absorbing the rejection here
-      // keeps it from becoming an unhandled promise rejection.
       board
         .moveTask(taskId, status)
         .then(bumpStats)
@@ -115,8 +107,6 @@ export function BoardView() {
     }
   }, [board, selectedTaskId])
 
-  // Derived from the live list rather than stored, so the panel reflects the
-  // latest server response after any mutation.
   const selectedTask = useMemo<TaskResponse | null>(() => {
     if (selectedTaskId === null) {
       return null
@@ -132,8 +122,6 @@ export function BoardView() {
     return null
   }, [selectedTaskId, board.tasksByStatus])
 
-  // A status filter collapses the layout to the single matching column instead
-  // of showing two permanently empty boards.
   const visibleStatuses = useMemo<readonly TaskStatus[]>(
     () => (query.status === null ? TASK_STATUSES : [query.status]),
     [query.status],

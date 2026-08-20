@@ -1,9 +1,3 @@
-/**
- * The API exchanges `LocalDate` as `YYYY-MM-DD`. Passing that string to
- * `new Date()` parses it as UTC midnight, which renders as the previous day for
- * anyone west of Greenwich, so dates are parsed into explicit local components.
- */
-
 const ISO_DATE = /^(\d{4})-(\d{2})-(\d{2})$/
 
 export function parseLocalDate(value: string): Date | null {
@@ -24,7 +18,6 @@ export function parseLocalDate(value: string): Date | null {
   return Number.isNaN(date.getTime()) ? null : date
 }
 
-/** `YYYY-MM-DD` for today in the viewer's own timezone. */
 export function todayAsIsoDate(): string {
   const now = new Date()
   const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -47,15 +40,10 @@ export function formatDueDate(value: string): string {
   })
 }
 
-/** A due date strictly before today. Equal dates are still due, not overdue. */
 export function isOverdue(dueDate: string | null): boolean {
   return dueDate !== null && dueDate < todayAsIsoDate()
 }
 
-/**
- * The API exchanges `LocalDateTime` as `YYYY-MM-DDTHH:mm:ss` with no zone.
- * It is treated as local wall-clock time, which is what the server recorded.
- */
 export function formatTimestamp(value: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(value)
 

@@ -1,4 +1,3 @@
-/** The three top-level views. Kept out of the component file so fast refresh works. */
 export const APP_VIEWS = ['board', 'categories', 'account'] as const
 
 export type AppView = (typeof APP_VIEWS)[number]

@@ -7,10 +7,6 @@ interface ModalProps {
   readonly children: ReactNode
 }
 
-/**
- * Accessible dialog built on native APIs: focus is moved in on open, restored
- * to the invoking element on close, and background scrolling is locked.
- */
 export function Modal({ title, onClose, children }: ModalProps) {
   const panelRef = useRef<HTMLDivElement | null>(null)
   const titleId = useId()

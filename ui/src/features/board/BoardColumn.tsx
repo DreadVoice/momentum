@@ -13,7 +13,6 @@ interface BoardColumnProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-/** One of the three boards. Presentational: it renders whatever it is given. */
 export function BoardColumn({
   status,
   tasks,

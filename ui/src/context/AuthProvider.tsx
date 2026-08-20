@@ -15,14 +15,9 @@ interface AuthProviderProps {
   readonly children: ReactNode
 }
 
-/**
- * Owns the session: restores it on boot, exposes the credential flows, and
- * reacts to an unrecoverable 401 raised anywhere in the HTTP client.
- */
 export function AuthProvider({ children }: AuthProviderProps) {
   const [state, setState] = useState<AuthState>({ kind: 'restoring' })
-  // Guards against a state update after unmount when the boot request resolves
-  // late (React 18 double-invokes effects in development).
+
   const mountedRef = useRef(true)
 
   useEffect(() => {
@@ -49,9 +44,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [endSession])
 
-  // Restore an existing session by proving the stored token still resolves a
-  // user. A failure here is expected (expired refresh token) and must not be
-  // surfaced as an application error.
+
   useEffect(() => {
     if (tokenStorage.read() === null) {
       setState({ kind: 'anonymous', sessionExpired: false })
@@ -119,13 +112,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = useCallback(async (): Promise<void> => {
     const tokens = tokenStorage.read()
 
-    // Revoking is best-effort: the local session must end even if the call
-    // fails, otherwise a user on a flaky connection can never sign out.
+
     if (tokens !== null) {
       try {
         await authApi.logout(tokens.refreshToken)
       } catch {
-        /* Token will expire on its own. */
       }
     }
 
@@ -133,8 +124,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [endSession])
 
   const applyUser = useCallback((user: UserResponse) => {
-    // Only meaningful while authenticated; ignoring it otherwise keeps the
-    // state machine from resurrecting a session that has already ended.
     setState((current) =>
       current.kind === 'authenticated' ? { kind: 'authenticated', user } : current,
     )

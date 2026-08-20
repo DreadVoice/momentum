@@ -2,13 +2,7 @@ import { ApiError, apiErrorFromResponse } from '../lib/ApiError'
 import { tokenStorage, type TokenPair } from '../lib/tokenStorage'
 import type { AuthResponse } from '../types/api'
 
-/**
- * Transport layer. Owns bearer-token injection, error normalisation and silent
- * access-token renewal. Resource modules stay declarative on top of it.
- *
- * The API is called cross-origin (never same-origin proxied) so that the CORS
- * contract in `CorsConfig` is exercised in development exactly as in production.
- */
+
 const API_BASE_URL: string = (
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 ).replace(/\/+$/, '')
@@ -18,17 +12,10 @@ export type QueryValue = string | number | boolean | null | undefined
 export interface RequestOptions {
   readonly method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   readonly body?: unknown
-  /** Attach the bearer token and retry once after a silent refresh. */
   readonly authenticated?: boolean
   readonly query?: Readonly<Record<string, QueryValue>>
   readonly signal?: AbortSignal | undefined
-  /**
-   * Set to false for endpoints where 401 is a domain answer rather than a
-   * token problem - the password check and account deletion both reject a
-   * wrong password with 401. Refreshing there would rotate a refresh token
-   * for nothing and, if the refresh itself failed, would sign the user out
-   * because they mistyped their password.
-   */
+ 
   readonly refreshOn401?: boolean
 }
 
@@ -36,19 +23,12 @@ type UnauthorizedHandler = () => void
 
 let onUnauthorized: UnauthorizedHandler | null = null
 
-/**
- * Registered by the auth provider so an unrecoverable 401 tears the session
- * down once, centrally, instead of every caller handling it.
- */
+
 export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
   onUnauthorized = handler
 }
 
-/**
- * Guards against a refresh stampede: when several requests 401 at the same
- * moment they all await this single in-flight promise rather than each burning
- * a refresh token (the backend rotates and deletes the old row on every use).
- */
+
 let refreshInFlight: Promise<TokenPair | null> | null = null
 
 function buildUrl(path: string, query?: Readonly<Record<string, QueryValue>>): string {
@@ -101,8 +81,7 @@ async function send(
   try {
     return await fetch(buildUrl(path, options.query), init)
   } catch (error: unknown) {
-    // `fetch` rejects only on transport failure; abort must stay abort so
-    // callers can distinguish an intentional cancellation from an outage.
+
     if (error instanceof DOMException && error.name === 'AbortError') {
       throw error
     }
@@ -110,7 +89,6 @@ async function send(
   }
 }
 
-/** Refreshes the token pair, or resolves to null when the session is dead. */
 async function refreshTokens(): Promise<TokenPair | null> {
   const current = tokenStorage.read()
 
@@ -176,7 +154,6 @@ async function performRequest(path: string, options: RequestOptions): Promise<Re
   return send(path, options, renewed.accessToken)
 }
 
-/** Performs a request that is expected to return a JSON body. */
 export async function request<TResponse>(
   path: string,
   options: RequestOptions = {},
@@ -190,7 +167,6 @@ export async function request<TResponse>(
   return (await response.json()) as TResponse
 }
 
-/** Performs a request whose success case is `204 No Content`. */
 export async function requestNoContent(
   path: string,
   options: RequestOptions = {},

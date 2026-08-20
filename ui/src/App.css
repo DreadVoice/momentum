@@ -1,5 +1,3 @@
-/* Feature styles: auth, navigation, board, detail, categories, account. */
-
 .stack {
   display: flex;
   flex-direction: column;
@@ -33,8 +31,6 @@
   font-size: 15px;
   max-width: 34ch;
 }
-
-/* ---------- Auth ---------- */
 
 .auth {
   display: grid;
@@ -124,7 +120,6 @@
   }
 }
 
-/* ---------- Navigation ---------- */
 
 .app-nav {
   display: flex;
@@ -162,7 +157,6 @@
   color: var(--text);
 }
 
-/* Active state is a raised surface pill, matching the theme-switcher pattern. */
 .segmented__item--active,
 .segmented__item--active:hover {
   background-color: var(--surface);
@@ -176,7 +170,6 @@
   gap: var(--space-3);
 }
 
-/* ---------- Board toolbar ---------- */
 
 .toolbar {
   display: flex;
@@ -216,7 +209,6 @@
   gap: var(--space-3);
 }
 
-/* ---------- Stats ---------- */
 
 .stats {
   display: grid;
@@ -255,7 +247,6 @@
   }
 }
 
-/* ---------- Board layout ---------- */
 
 .board__content {
   display: flex;
@@ -344,7 +335,6 @@
   text-align: center;
 }
 
-/* ---------- Task card ---------- */
 
 .task-card {
   display: flex;
@@ -436,7 +426,6 @@
   color: var(--accent);
 }
 
-/* ---------- Card menu ---------- */
 
 .task-menu {
   position: relative;
@@ -496,7 +485,6 @@
   color: var(--micro);
 }
 
-/* ---------- Detail panel ---------- */
 
 .detail {
   display: flex;
@@ -585,7 +573,6 @@
   background-color: var(--surface-2);
 }
 
-/* ---------- Subtasks ---------- */
 
 .subtasks {
   display: flex;
@@ -668,7 +655,6 @@
   margin-top: var(--space-2);
 }
 
-/* ---------- Split panels (categories, account) ---------- */
 
 .panel-split {
   display: grid;
@@ -717,7 +703,6 @@
   }
 }
 
-/* ---------- Categories ---------- */
 
 .category-list {
   list-style: none;
@@ -768,7 +753,6 @@
   flex-shrink: 0;
 }
 
-/* ---------- Account ---------- */
 
 .account-sections {
   gap: var(--space-5);
@@ -781,7 +765,6 @@
   background-color: var(--surface-2);
 }
 
-/* ---------- Task form / confirm ---------- */
 
 .task-form {
   display: flex;

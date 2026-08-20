@@ -6,7 +6,6 @@ import { useSubTasks } from './useSubTasks'
 
 interface SubTaskListProps {
   readonly taskId: number
-  /** Lets the board refresh the parent task's subtask counters. */
   readonly onChanged: () => void
 }
 
@@ -18,7 +17,6 @@ interface SubTaskRowProps {
   readonly onRemove: (subTaskId: number) => void
 }
 
-/** Presentational row with an inline rename affordance. */
 function SubTaskRow({ subTask, isPending, onToggle, onRename, onRemove }: SubTaskRowProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [draft, setDraft] = useState(subTask.title)
@@ -112,10 +110,6 @@ function SubTaskRow({ subTask, isPending, onToggle, onRename, onRemove }: SubTas
   )
 }
 
-/**
- * Container for one task's subtasks. Every mutation notifies the parent so the
- * board's `subTaskCount` / `completedSubTaskCount` badges stay truthful.
- */
 export function SubTaskList({ taskId, onChanged }: SubTaskListProps) {
   const subTasks = useSubTasks(taskId)
   const [draft, setDraft] = useState('')

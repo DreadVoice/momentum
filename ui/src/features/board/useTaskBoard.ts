@@ -9,7 +9,6 @@ import type {
   TaskUpdateRequest,
 } from '../../types/api'
 
-/** The board needs every matching task, so it pages well above the API default of 20. */
 const PAGE_SIZE = 100
 
 export type BoardStatus = 'loading' | 'ready' | 'error'

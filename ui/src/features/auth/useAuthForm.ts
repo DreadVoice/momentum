@@ -18,7 +18,6 @@ const EMPTY_VALUES: AuthFormValues = {
   password: '',
 }
 
-/** Mirrors the Jakarta constraints on RegisterRequest/LoginRequest. */
 const USERNAME_PATTERN = /^[A-Za-z0-9_-]+$/
 const MIN_PASSWORD_LENGTH = 8
 const MIN_USERNAME_LENGTH = 3
@@ -37,11 +36,6 @@ export interface UseAuthFormResult {
   readonly submit: () => Promise<void>
 }
 
-/**
- * Validates locally first so obvious mistakes never spend one of the five
- * requests per minute that `RateLimitFilter` allows on the auth endpoints,
- * then maps any server-side `fieldErrors` back onto the inputs.
- */
 export function useAuthForm(initialMode: AuthMode = 'login'): UseAuthFormResult {
   const { login, register } = useAuth()
   const [mode, setModeState] = useState<AuthMode>(initialMode)
@@ -65,7 +59,6 @@ export function useAuthForm(initialMode: AuthMode = 'login'): UseAuthFormResult 
 
   const setValue = useCallback((field: keyof AuthFormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }))
-    // Clear the message for the field being corrected, not the whole form.
     setLocalFieldErrors((current) => {
       if (current[field] === undefined) {
         return current
@@ -147,8 +140,6 @@ export function useAuthForm(initialMode: AuthMode = 'login'): UseAuthFormResult 
       }
       setFormError(toErrorMessage(error))
     } finally {
-      // The component stays mounted on failure; on success it unmounts, and
-      // React discards the update on an unmounted component without warning.
       setIsSubmitting(false)
     }
   }, [values, mode, validate, login, register])

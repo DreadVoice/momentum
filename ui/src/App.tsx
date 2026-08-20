@@ -16,11 +16,6 @@ interface DashboardProps {
   readonly user: UserResponse
 }
 
-/**
- * The authenticated surface. View selection is local state rather than a
- * router: there are three views, no deep links and no third-party dependency
- * is warranted for it.
- */
 function Dashboard({ user }: DashboardProps) {
   const { logout } = useAuth()
   const [view, setView] = useState<AppView>('board')
@@ -38,10 +33,7 @@ function Dashboard({ user }: DashboardProps) {
         onLogout={handleLogout}
       />
 
-      {/*
-        Keyed by view so a failure in one is cleared when the user navigates
-        away, instead of leaving a stuck error panel behind.
-      */}
+      
       <ErrorBoundary key={view} fallbackTitle="This view could not be displayed">
         {view === 'board' && <BoardView />}
         {view === 'categories' && <CategoriesView />}
@@ -51,7 +43,6 @@ function Dashboard({ user }: DashboardProps) {
   )
 }
 
-/** Chooses the surface for the current session state. */
 function AppRoutes() {
   const { state } = useAuth()
 

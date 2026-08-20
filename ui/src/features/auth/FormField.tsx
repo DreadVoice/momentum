@@ -11,7 +11,6 @@ interface FormFieldProps {
   readonly onChange: (value: string) => void
 }
 
-/** Presentational, fully controlled input with wired-up error messaging. */
 export function FormField({
   label,
   type,

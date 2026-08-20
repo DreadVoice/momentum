@@ -19,7 +19,6 @@ export interface UseCategoryManagerResult {
   readonly dismissMutationError: () => void
 }
 
-/** Full CRUD over the account's categories. */
 export function useCategoryManager(): UseCategoryManagerResult {
   const [categories, setCategories] = useState<readonly CategoryResponse[]>([])
   const [status, setStatus] = useState<CategoriesStatus>('loading')

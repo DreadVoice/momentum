@@ -20,13 +20,7 @@ const EMPTY_COUNTS: Readonly<Record<TaskStatus, number>> = {
   COMPLETED: 0,
 }
 
-/**
- * Account-wide totals from `/api/tasks/stats` plus the overdue list length.
- * These are unaffected by the board's filters, so the numbers describe the
- * whole account rather than the current view.
- *
- * `revision` is bumped by the caller after a mutation to re-read the counts.
- */
+
 export function useTaskStats(revision: number): UseTaskStatsResult {
   const [summary, setSummary] = useState<TaskStatsSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -35,8 +29,6 @@ export function useTaskStats(revision: number): UseTaskStatsResult {
     const controller = new AbortController()
     let isActive = true
 
-    // Both are non-critical: a failure leaves the strip hidden rather than
-    // interrupting the board.
     Promise.all([
       tasksApi.stats(controller.signal),
       tasksApi.overdue(controller.signal),

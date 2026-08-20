@@ -19,7 +19,6 @@ const MAX_TITLE_LENGTH = 255
 const MAX_DESCRIPTION_LENGTH = 1000
 
 interface TaskFormModalProps {
-  /** Null creates a task; a task edits it in place. */
   readonly task: TaskResponse | null
   readonly categories: readonly CategoryResponse[]
   readonly onCreate: (body: TaskCreateRequest) => Promise<void>
@@ -51,8 +50,7 @@ function initialValues(
     }
   }
 
-  // TaskResponse carries `categoryName`, not the id, so the current category is
-  // resolved back to an id through the loaded list.
+
   const matched = categories.find((category) => category.name === task.categoryName)
 
   return {
@@ -65,10 +63,6 @@ function initialValues(
   }
 }
 
-/**
- * Create/edit dialog. Uses PUT for edits so that clearing the due date or the
- * category actually persists - PATCH ignores nulls on this API.
- */
 export function TaskFormModal({
   task,
   categories,
@@ -87,8 +81,7 @@ export function TaskFormModal({
     setValues((current) => ({ ...current, [field]: value }))
   }, [])
 
-  // `<select>` hands back a plain string; narrowing it against the known enum
-  // values keeps the union honest without a cast.
+
   const setPriority = useCallback((value: string) => {
     const parsed = TASK_PRIORITIES.find((candidate) => candidate === value)
     setValues((current) => ({ ...current, priority: parsed ?? current.priority }))

@@ -5,14 +5,10 @@ import { FormField } from './FormField'
 import { useAuthForm } from './useAuthForm'
 
 interface AuthCardProps {
-  /** Set when a previously valid session was rejected by the API. */
   readonly sessionExpired: boolean
 }
 
-/**
- * Sign-in and sign-up, rendered inline as a split panel inside the window
- * chrome rather than as a separate window or route.
- */
+
 export function AuthCard({ sessionExpired }: AuthCardProps) {
   const { mode, values, fieldErrors, formError, isSubmitting, setMode, setValue, submit } =
     useAuthForm('login')

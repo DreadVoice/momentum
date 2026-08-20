@@ -23,7 +23,6 @@ export const authApi = {
     })
   },
 
-  /** Revokes the refresh token server-side. Access tokens stay valid until expiry. */
   logout(refreshToken: string): Promise<void> {
     return requestNoContent('/api/auth/logout', {
       method: 'POST',

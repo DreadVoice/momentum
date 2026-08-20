@@ -5,7 +5,6 @@ interface AlertProps {
   readonly onDismiss?: () => void
 }
 
-/** User-facing surface for a failed operation or a session notice. */
 export function Alert({ tone, message, onRetry, onDismiss }: AlertProps) {
   return (
     <div className={`alert alert--${tone}`} role={tone === 'error' ? 'alert' : 'status'}>

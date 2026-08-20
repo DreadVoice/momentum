@@ -6,7 +6,6 @@ interface StatsStripProps {
   readonly summary: TaskStatsSummary
 }
 
-/** Account-wide counters. Independent of the board's current filters. */
 export function StatsStrip({ summary }: StatsStripProps) {
   return (
     <dl className="stats">

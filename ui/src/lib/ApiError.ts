@@ -1,13 +1,8 @@
 import type { ApiErrorBody } from '../types/api'
 
-/**
- * Normalised failure for every call made through the HTTP client, so callers
- * never have to inspect raw `Response` objects or guess at error shapes.
- */
 export class ApiError extends Error {
   readonly status: number
   readonly fieldErrors: Readonly<Record<string, string>>
-  /** True when the request never reached the server (offline, DNS, CORS). */
   readonly isNetworkError: boolean
 
   constructor(
@@ -61,11 +56,6 @@ function readFieldErrors(value: unknown): Readonly<Record<string, string>> {
   return Object.fromEntries(entries)
 }
 
-/**
- * Builds an `ApiError` from a failed response. The backend answers with
- * `ErrorResponse` for every handled case, but proxies and container platforms
- * can still return HTML or an empty body, so parsing is defensive.
- */
 export async function apiErrorFromResponse(response: Response): Promise<ApiError> {
   let body: unknown = null
 
@@ -104,17 +94,14 @@ function defaultMessageFor(status: number): string {
   }
 }
 
-/** Type guard so `catch (error: unknown)` blocks stay strictly typed. */
 export function isApiError(error: unknown): error is ApiError {
   return error instanceof ApiError
 }
 
-/** True for the `AbortError` raised when an in-flight request is cancelled. */
 export function isAbortError(error: unknown): boolean {
   return error instanceof DOMException && error.name === 'AbortError'
 }
 
-/** Last-resort message extraction for values that are not `ApiError`s. */
 export function toErrorMessage(error: unknown): string {
   if (isApiError(error)) {
     return error.message

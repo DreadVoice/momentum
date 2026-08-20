@@ -2,7 +2,6 @@ import { Component, type ErrorInfo, type ReactNode } from 'react'
 
 interface ErrorBoundaryProps {
   readonly children: ReactNode
-  /** Shown instead of the default panel when the subtree throws. */
   readonly fallbackTitle?: string
 }
 
@@ -10,11 +9,7 @@ interface ErrorBoundaryState {
   readonly error: Error | null
 }
 
-/**
- * Stops a render-time failure in one branch from unmounting the whole
- * application. Error boundaries must be class components; there is no hook
- * equivalent for `componentDidCatch`.
- */
+
 export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
   override state: ErrorBoundaryState = { error: null }
 
@@ -23,7 +18,6 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
   }
 
   override componentDidCatch(error: Error, info: ErrorInfo): void {
-    // Replace with the real telemetry sink when one exists.
     console.error('Unhandled UI error', error, info.componentStack)
   }
 

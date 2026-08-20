@@ -11,7 +11,6 @@ interface TaskCardMenuProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-/** The per-card overflow menu. Purely presentational beyond its own open state. */
 export function TaskCardMenu({ task, disabled, onEdit, onMove, onDelete }: TaskCardMenuProps) {
   const [isOpen, setIsOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)

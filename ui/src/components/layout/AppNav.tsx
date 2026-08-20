@@ -8,10 +8,6 @@ interface AppNavProps {
   readonly onLogout: () => void
 }
 
-/**
- * Primary navigation: a segmented control for the three views, plus the
- * session action. Presentational; the active view is owned above.
- */
 export function AppNav({ username, view, onViewChange, onLogout }: AppNavProps) {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 

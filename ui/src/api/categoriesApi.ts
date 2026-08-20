@@ -21,11 +21,7 @@ export const categoriesApi = {
     })
   },
 
-  /**
-   * Only safe when the category holds no tasks: `tasks.category_id` is a
-   * RESTRICT foreign key with no JPA cascade, so deleting a category that is
-   * still referenced fails in the database and surfaces as a 500.
-   */
+
   remove(categoryId: number): Promise<void> {
     return requestNoContent(`/api/categories/${categoryId}`, { method: 'DELETE' })
   },

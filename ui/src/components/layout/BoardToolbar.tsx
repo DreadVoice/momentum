@@ -22,10 +22,7 @@ interface BoardToolbarProps {
   readonly onNewTask: () => void
 }
 
-/**
- * Sorting and filtering controls for the board. Every value is narrowed against
- * the sets the API accepts, so an unrecognised option can never be sent.
- */
+
 export function BoardToolbar({
   query,
   categories,
@@ -63,7 +60,6 @@ export function BoardToolbar({
 
   const handleSortChange = useCallback(
     (value: string) => {
-      // Guarded against the whitelist in TaskController; anything else is a 400.
       const parsed: SortableTaskProperty | undefined = SORTABLE_TASK_PROPERTIES.find(
         (candidate) => candidate === value,
       )

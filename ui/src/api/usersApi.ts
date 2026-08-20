@@ -15,7 +15,6 @@ export const usersApi = {
     return request<UserResponse>('/api/users/me', { method: 'PUT', body })
   },
 
-  /** A 401 here means the current password was wrong, not that the session died. */
   changePassword(body: ChangePasswordRequest): Promise<void> {
     return requestNoContent('/api/users/me/password', {
       method: 'PATCH',
@@ -24,7 +23,6 @@ export const usersApi = {
     })
   },
 
-  /** The API requires the current password in the body of the DELETE. */
   deleteAccount(body: DeleteAccountRequest): Promise<void> {
     return requestNoContent('/api/users/me', {
       method: 'DELETE',

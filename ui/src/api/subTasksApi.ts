@@ -6,7 +6,6 @@ import type {
   SubTaskUpdateRequest,
 } from '../types/api'
 
-/** Subtasks are created under a task but addressed by their own id thereafter. */
 export const subTasksApi = {
   list(taskId: number, signal?: AbortSignal): Promise<readonly SubTaskResponse[]> {
     return request<readonly SubTaskResponse[]>(`/api/tasks/${taskId}/subtasks`, { signal })
@@ -27,7 +26,6 @@ export const subTasksApi = {
     return request<SubTaskResponse>(`/api/subtasks/${subTaskId}`, { method: 'PATCH', body })
   },
 
-  /** Server-side flip; avoids sending a stale `completed` value. */
   toggle(subTaskId: number): Promise<SubTaskResponse> {
     return request<SubTaskResponse>(`/api/subtasks/${subTaskId}/toggle`, {
       method: 'PATCH',

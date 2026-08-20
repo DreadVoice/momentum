@@ -25,8 +25,7 @@ export const tasksApi = {
         categoryId: query.categoryId,
         page,
         size,
-        // The backend whitelists the property; the union type keeps the
-        // client from ever sending one that would be rejected with a 400.
+
         sort: `${query.sortBy},${query.sortDirection}`,
       },
       signal,
@@ -41,12 +40,10 @@ export const tasksApi = {
     return request<TaskResponse>('/api/tasks', { method: 'POST', body })
   },
 
-  /** Full replacement. The only way to clear a due date or detach a category. */
   update(taskId: number, body: TaskUpdateRequest): Promise<TaskResponse> {
     return request<TaskResponse>(`/api/tasks/${taskId}`, { method: 'PUT', body })
   },
 
-  /** Partial update; the backend ignores null fields. */
   patch(taskId: number, body: TaskPatchRequest): Promise<TaskResponse> {
     return request<TaskResponse>(`/api/tasks/${taskId}`, { method: 'PATCH', body })
   },
@@ -55,7 +52,6 @@ export const tasksApi = {
     return requestNoContent(`/api/tasks/${taskId}`, { method: 'DELETE' })
   },
 
-  /** Tasks whose due date has passed and that are not completed. */
   overdue(signal?: AbortSignal): Promise<readonly TaskResponse[]> {
     return request<readonly TaskResponse[]>('/api/tasks/overdue', { signal })
   },
