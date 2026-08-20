@@ -2,7 +2,7 @@
 
 A task manager built as a full-stack project: a Spring Boot REST API paired with a React web client.
 
-**The backend is complete and tested. The web client covers the full API surface.** `ui/` holds a React + TypeScript client: board, task detail with subtasks, categories and account settings. Everything in the API is exercised through tests and HTTP, not through a user interface.
+**The backend is complete and tested, and the web client covers the full API surface.** `ui/` holds a React + TypeScript client: the three task boards, a task detail panel with subtasks, categories and account settings.
 
 Momentum lets you keep tasks, sort them into categories, break them into subtasks, and see what is overdue. Accounts are isolated: no request can reach another account's data.
 
@@ -28,9 +28,9 @@ momentum
 └── .env.example         Template for the environment variables the app needs
 ```
 
-## Running the backend
+## Running it
 
-You need **JDK 21** and **Docker**.
+You need **JDK 21 or newer**, **Node 20 or newer**, and **Docker**.
 
 **1. Configure the environment.** Copy the template and fill it in:
 
@@ -48,14 +48,27 @@ docker compose up -d
 
 MySQL comes up on port **3308** (3306 and 3307 are commonly taken by other installs; change `DB_PORT` if 3308 is busy too).
 
-**3. Run the app.**
+**3. Start the API,** in its own terminal:
 
 ```bash
-cd app
-./mvnw spring-boot:run
+cd app && ./mvnw spring-boot:run
 ```
 
-Flyway builds the schema on first boot. The API is then on `http://localhost:8080`.
+On Windows PowerShell the wrapper is `.\mvnw.cmd` rather than `./mvnw`.
+
+Flyway builds the schema on first boot. Wait for `Started AppApplication` — the API is then on `http://localhost:8080`.
+
+**4. Start the client,** in a second terminal, from the repository root:
+
+```bash
+npm install --prefix ui && npm run dev --prefix ui
+```
+
+Open `http://localhost:5173` and register an account from the sign-in card. There is no seeded user, and passwords must be at least 8 characters.
+
+The client reads its API origin from `VITE_API_BASE_URL`, which defaults to `http://localhost:8080`; copy `ui/.env.example` to `ui/.env.local` to change it.
+
+> Register and login are rate limited to **5 requests per minute per IP**. If repeated auth testing starts returning *Too many attempts*, that is the backend refusing you: wait a minute, or raise `RATELIMIT_CAPACITY` in `.env` and restart the API.
 
 ## API reference
 
@@ -146,28 +159,22 @@ The integration suite includes an adversarial one: two users register, and one t
 
 ## The frontend
 
-`ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three
-task boards with sorting and filtering, a task detail panel with subtask
-management, category CRUD, and account settings. It ships a single light theme.
+`ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three task boards with sorting and filtering, a task detail panel with subtask management, category CRUD, and account settings. It ships a single light theme, *warm paper*.
 
-The API allows browser requests from origins listed in `CORS_ALLOWED_ORIGINS`,
-which defaults to the Vite dev server at `http://localhost:5173`, so development
-works out of the box; a deployed client needs its own origin added there.
+The client calls the API cross-origin rather than through a dev-server proxy, so the CORS contract is exercised in development exactly as in production. The API allows browser requests from the origins in `CORS_ALLOWED_ORIGINS`, which defaults to the Vite dev server at `http://localhost:5173`; a deployed client needs its own origin added there.
+
+Two API details shape the client, and are worth knowing before changing it:
+
+- `PATCH /api/tasks/{id}` ignores null fields, so editing a task uses `PUT`. Only a full replacement can clear a due date or detach a category.
+- `tasks.category_id` is a RESTRICT foreign key with no cascade, so a category that still holds tasks cannot be deleted. The UI disables that action rather than letting the request fail as an unhandled database error.
 
 See [ui/README.md](ui/README.md) for commands and design notes.
 
 ## Roadmap
 
-Backend:
-
-- Pagination and sorting on the task list
-- Logout and refresh-token revocation
-- Rate limiting on the auth endpoints
 - Dockerfile and a deployment target
-
-Frontend:
-
-- Everything: auth screens, task views, categories, subtask checklists, offline behaviour
+- Drag-and-drop between the boards
+- Reassigning a task's category from the category screen
 
 ## License
 
