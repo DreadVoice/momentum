@@ -40,10 +40,8 @@ build/
 logs/
 
 
-### Node / Electron (ui/) ###
+### Node (ui/) ###
 ui/node_modules/
 ui/dist/
-ui/dist-electron/
-ui/release/
 ui/.vite/
 ui/*.tsbuildinfo
