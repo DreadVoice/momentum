@@ -76,4 +76,21 @@ describe('httpClient', () => {
     expect(tokenStorage.read()).toBeNull()
     expect(onUnauthorized).toHaveBeenCalled()
   })
+  it('adopts a token rotated by another tab instead of refreshing again', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockImplementationOnce(() => {
+        tokenStorage.write({ accessToken: 'access-9', refreshToken: 'refresh-9' })
+        return Promise.resolve(jsonResponse(401, {}))
+      })
+      .mockResolvedValueOnce(jsonResponse(200, { id: 1 }))
+    vi.stubGlobal('fetch', fetchMock)
+
+    await expect(request('/api/users/me')).resolves.toEqual({ id: 1 })
+
+    const refreshCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes('/api/auth/refresh'),
+    )
+    expect(refreshCalls).toHaveLength(0)
+  })
 })

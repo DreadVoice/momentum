@@ -29,6 +29,8 @@ export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): voi
 }
 
 
+const REFRESH_LOCK = 'momentum.token-refresh'
+
 let refreshInFlight: Promise<TokenPair | null> | null = null
 
 function buildUrl(path: string, query?: Readonly<Record<string, QueryValue>>): string {
@@ -119,8 +121,24 @@ async function refreshTokens(): Promise<TokenPair | null> {
   }
 }
 
-function refreshOnce(): Promise<TokenPair | null> {
-  refreshInFlight ??= refreshTokens().finally(() => {
+async function adoptOrRefresh(previous: string | null): Promise<TokenPair | null> {
+  const latest = tokenStorage.read()
+
+  if (latest !== null && previous !== null && latest.refreshToken !== previous) {
+    return latest
+  }
+
+  return refreshTokens()
+}
+
+function withRefreshLock(run: () => Promise<TokenPair | null>): Promise<TokenPair | null> {
+  const locks: LockManager | undefined = navigator.locks
+
+  return locks === undefined ? run() : locks.request(REFRESH_LOCK, run)
+}
+
+function refreshOnce(previous: string | null): Promise<TokenPair | null> {
+  refreshInFlight ??= withRefreshLock(() => adoptOrRefresh(previous)).finally(() => {
     refreshInFlight = null
   })
 
@@ -143,7 +161,7 @@ async function performRequest(path: string, options: RequestOptions): Promise<Re
     return response
   }
 
-  const renewed = await refreshOnce()
+  const renewed = await refreshOnce(tokens?.refreshToken ?? null)
 
   if (renewed === null) {
     tokenStorage.clear()
