@@ -27,5 +27,13 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("categoryId") Long categoryId,
             Pageable pageable);
 
-    long countByUserIdAndStatus(Long userId, TaskStatus status);
+    @Query("select t.status as status, count(t) as count from Task t "
+            + "where t.user.id = :userId group by t.status")
+    List<TaskStatusCount> countGroupedByStatus(@Param("userId") Long userId);
+
+    interface TaskStatusCount {
+        TaskStatus getStatus();
+
+        long getCount();
+    }
 }

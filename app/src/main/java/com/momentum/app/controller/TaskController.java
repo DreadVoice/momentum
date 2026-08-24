@@ -1,7 +1,6 @@
 package com.momentum.app.controller;
 
 import java.net.URI;
-import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
@@ -86,16 +85,7 @@ public class TaskController {
     @GetMapping("/stats")
     public ResponseEntity<TaskStatsResponse> getTaskStats(
             @AuthenticationPrincipal UserPrincipal principal) {
-        Map<TaskStatus, Long> countsByStatus = new EnumMap<>(TaskStatus.class);
-        long total = 0;
-
-        for (TaskStatus status : TaskStatus.values()) {
-            long count = taskService.countTasksByStatus(principal.id(), status);
-            countsByStatus.put(status, count);
-            total += count;
-        }
-
-        return ResponseEntity.ok(new TaskStatsResponse(countsByStatus, total));
+        return ResponseEntity.ok(taskService.getTaskStats(principal.id()));
     }
 
     @GetMapping("/{taskId}")

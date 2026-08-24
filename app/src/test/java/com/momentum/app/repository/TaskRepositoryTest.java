@@ -2,8 +2,11 @@ package com.momentum.app.repository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.entry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 
 import com.momentum.app.entity.Category;
+import com.momentum.app.repository.TaskRepository.TaskStatusCount;
 import com.momentum.app.entity.Task;
 import com.momentum.app.entity.User;
 import com.momentum.app.enums.TaskPriority;
@@ -74,15 +78,18 @@ class TaskRepositoryTest extends DataJpaTestBase {
     }
 
     @Test
-    void countByUserIdAndStatus_countsOnlyOwnersTasks() {
-        newTask(alice, "P1", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(alice, "P2", TaskStatus.PENDING, TaskPriority.LOW, null, null);
-        newTask(alice, "C1", TaskStatus.COMPLETED, TaskPriority.LOW, null, null);
-        newTask(bob, "Bob pending", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+    void countGroupedByStatus_groupsOnlyOwnersTasks() {
+        newTask(alice, "A", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+        newTask(alice, "B", TaskStatus.PENDING, TaskPriority.LOW, null, null);
+        newTask(alice, "C", TaskStatus.COMPLETED, TaskPriority.LOW, null, null);
+        newTask(bob, "Bob", TaskStatus.PENDING, TaskPriority.LOW, null, null);
 
-        assertThat(taskRepository.countByUserIdAndStatus(alice.getId(), TaskStatus.PENDING)).isEqualTo(2);
-        assertThat(taskRepository.countByUserIdAndStatus(alice.getId(), TaskStatus.COMPLETED)).isEqualTo(1);
-        assertThat(taskRepository.countByUserIdAndStatus(alice.getId(), TaskStatus.IN_PROGRESS)).isZero();
+        Map<TaskStatus, Long> counts = taskRepository.countGroupedByStatus(alice.getId()).stream()
+                .collect(Collectors.toMap(TaskStatusCount::getStatus, TaskStatusCount::getCount));
+
+        assertThat(counts).containsOnly(
+                entry(TaskStatus.PENDING, 2L),
+                entry(TaskStatus.COMPLETED, 1L));
     }
 
     @Test

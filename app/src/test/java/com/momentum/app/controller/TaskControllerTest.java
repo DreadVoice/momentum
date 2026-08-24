@@ -2,7 +2,9 @@ package com.momentum.app.controller;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.ArgumentCaptor;
@@ -38,6 +40,7 @@ import com.momentum.app.config.SecurityConfig;
 import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskResponse;
+import com.momentum.app.dto.task.TaskStatsResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
@@ -228,9 +231,11 @@ class TaskControllerTest {
 
     @Test
     void getTaskStats_aggregatesEveryStatus() throws Exception {
-        when(taskService.countTasksByStatus(USER_ID, TaskStatus.PENDING)).thenReturn(3L);
-        when(taskService.countTasksByStatus(USER_ID, TaskStatus.IN_PROGRESS)).thenReturn(2L);
-        when(taskService.countTasksByStatus(USER_ID, TaskStatus.COMPLETED)).thenReturn(5L);
+        Map<TaskStatus, Long> counts = new EnumMap<>(TaskStatus.class);
+        counts.put(TaskStatus.PENDING, 3L);
+        counts.put(TaskStatus.IN_PROGRESS, 2L);
+        counts.put(TaskStatus.COMPLETED, 5L);
+        when(taskService.getTaskStats(USER_ID)).thenReturn(new TaskStatsResponse(counts, 10L));
 
         mockMvc.perform(authed(get("/api/tasks/stats")))
                 .andExpect(status().isOk())

@@ -8,6 +8,7 @@ import com.momentum.app.dto.common.PageResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
+import com.momentum.app.dto.task.TaskStatsResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.enums.TaskPriority;
 import com.momentum.app.enums.TaskStatus;
@@ -22,5 +23,5 @@ public interface TaskService {
     PageResponse<TaskResponse> getTasks(Long userId, TaskStatus status, TaskPriority priority,
             Long categoryId, Pageable pageable);
     List<TaskResponse> getOverdueTasks(Long userId);
-    long countTasksByStatus(Long userId, TaskStatus status);
+    TaskStatsResponse getTaskStats(Long userId);
 }

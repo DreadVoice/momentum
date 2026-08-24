@@ -3,7 +3,9 @@ package com.momentum.app.service.impl;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -14,6 +16,7 @@ import com.momentum.app.dto.subtask.SubTaskResponse;
 import com.momentum.app.dto.task.TaskCreateRequest;
 import com.momentum.app.dto.task.TaskPatchRequest;
 import com.momentum.app.dto.task.TaskResponse;
+import com.momentum.app.dto.task.TaskStatsResponse;
 import com.momentum.app.dto.task.TaskUpdateRequest;
 import com.momentum.app.entity.Category;
 import com.momentum.app.entity.Task;
@@ -23,6 +26,7 @@ import com.momentum.app.enums.TaskStatus;
 import com.momentum.app.exception.ResourceNotFoundException;
 import com.momentum.app.repository.CategoryRepository;
 import com.momentum.app.repository.TaskRepository;
+import com.momentum.app.repository.TaskRepository.TaskStatusCount;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.TaskService;
 
@@ -147,8 +151,19 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     @Transactional(readOnly = true)
-    public long countTasksByStatus(Long userId, TaskStatus status) {
-        return taskRepository.countByUserIdAndStatus(userId, status);
+    public TaskStatsResponse getTaskStats(Long userId) {
+        Map<TaskStatus, Long> countsByStatus = new EnumMap<>(TaskStatus.class);
+        for (TaskStatus status : TaskStatus.values()) {
+            countsByStatus.put(status, 0L);
+        }
+
+        long total = 0;
+        for (TaskStatusCount row : taskRepository.countGroupedByStatus(userId)) {
+            countsByStatus.put(row.getStatus(), row.getCount());
+            total += row.getCount();
+        }
+
+        return new TaskStatsResponse(countsByStatus, total);
     }
 
     private Task findTask(Long userId, Long taskId) {
