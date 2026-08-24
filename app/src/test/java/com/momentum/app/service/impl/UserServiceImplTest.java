@@ -25,6 +25,7 @@ import com.momentum.app.entity.User;
 import com.momentum.app.exception.InvalidCredentialsException;
 import com.momentum.app.exception.ResourceAlreadyExistsException;
 import com.momentum.app.exception.ResourceNotFoundException;
+import com.momentum.app.repository.RefreshTokenRepository;
 import com.momentum.app.repository.UserRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -34,6 +35,8 @@ class UserServiceImplTest {
     private UserRepository userRepository;
     @Mock
     private PasswordEncoder passwordEncoder;
+    @Mock
+    private RefreshTokenRepository refreshTokenRepository;
 
     @InjectMocks
     private UserServiceImpl userService;

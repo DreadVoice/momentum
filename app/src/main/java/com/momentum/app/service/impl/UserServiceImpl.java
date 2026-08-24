@@ -13,6 +13,7 @@ import com.momentum.app.entity.User;
 import com.momentum.app.exception.InvalidCredentialsException;
 import com.momentum.app.exception.ResourceAlreadyExistsException;
 import com.momentum.app.exception.ResourceNotFoundException;
+import com.momentum.app.repository.RefreshTokenRepository;
 import com.momentum.app.repository.UserRepository;
 import com.momentum.app.service.UserService;
 
@@ -27,6 +28,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     private User findUser(Long userId) {
         return userRepository.findById(userId)
@@ -96,6 +98,7 @@ public class UserServiceImpl implements UserService {
         }
         user.setPassword(passwordEncoder.encode(request.newPassword()));
         userRepository.save(user);
+        refreshTokenRepository.deleteByUserId(userId);
     }
 
     @Override
