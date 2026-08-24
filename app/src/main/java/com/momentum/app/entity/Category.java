@@ -3,6 +3,7 @@ package com.momentum.app.entity;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 
 import jakarta.persistence.Column;
@@ -22,6 +23,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
+@BatchSize(size = 50)
 @Table(name = "categories", uniqueConstraints = { @UniqueConstraint(columnNames = { "name", "user_id" })})
 @Getter
 @Setter

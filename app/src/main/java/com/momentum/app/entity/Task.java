@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -71,6 +72,7 @@ public class Task {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @BatchSize(size = 50)
     @OneToMany(mappedBy = "task", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SubTask> subTasks;
 
