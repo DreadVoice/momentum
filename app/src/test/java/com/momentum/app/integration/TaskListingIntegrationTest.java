@@ -57,4 +57,15 @@ class TaskListingIntegrationTest extends IntegrationTestBase {
         assertThat(page.getBody()).doesNotContain("C task");
     }
 
+    @Test
+    void capsAnOversizedPageRequest() {
+        String token = registerAndGetToken("olive");
+
+        ResponseEntity<String> response = rest.exchange("/api/tasks?size=100000", HttpMethod.GET,
+                authedRequest(token), String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).contains("\"size\":100");
+    }
+
 }
