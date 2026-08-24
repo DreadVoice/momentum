@@ -76,6 +76,7 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
+    @Transactional(noRollbackFor = InvalidCredentialsException.class)
     public AuthResponse refresh(RefreshTokenRequest request) {
         String refreshToken = request.refreshToken();
 
@@ -83,8 +84,14 @@ public class AuthServiceImpl implements AuthService {
             throw new InvalidCredentialsException("Invalid refresh token");
         }
 
-        RefreshToken stored = refreshTokenRepository.findByTokenHash(hash(refreshToken))
-                .orElseThrow(() -> new InvalidCredentialsException("Invalid refresh token"));
+        RefreshToken stored = refreshTokenRepository.findByTokenHash(hash(refreshToken)).orElse(null);
+
+        if (stored == null) {
+            Long userId = jwtService.extractUserId(refreshToken);
+            log.warn("Refresh token reuse detected for user {}", userId);
+            refreshTokenRepository.deleteByUserId(userId);
+            throw new InvalidCredentialsException("Invalid refresh token");
+        }
 
         User user = stored.getUser();
         if (!jwtService.isTokenValid(refreshToken, user)) {

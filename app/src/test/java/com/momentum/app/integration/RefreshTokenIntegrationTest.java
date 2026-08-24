@@ -63,7 +63,6 @@ class RefreshTokenIntegrationTest extends IntegrationTestBase {
         assertThat(rotated.getBody().refreshToken()).isNotEqualTo(auth.refreshToken());
         assertThat(refreshTokenRepository.count()).isEqualTo(1);
         assertThat(refresh(auth.refreshToken()).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-        assertThat(refresh(rotated.getBody().refreshToken()).getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
     @Test
@@ -100,6 +99,19 @@ class RefreshTokenIntegrationTest extends IntegrationTestBase {
         assertThat(change.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(refreshTokenRepository.count()).isZero();
         assertThat(refresh(auth.refreshToken()).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    void reusingARotatedTokenRevokesEveryToken() {
+        AuthResponse auth = register("pia");
+        ResponseEntity<AuthResponse> rotated = rest.postForEntity("/api/auth/refresh",
+                new RefreshTokenRequest(auth.refreshToken()), AuthResponse.class);
+
+        assertThat(refresh(auth.refreshToken()).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+
+        assertThat(refreshTokenRepository.count()).isZero();
+        assertThat(refresh(rotated.getBody().refreshToken()).getStatusCode())
+                .isEqualTo(HttpStatus.UNAUTHORIZED);
     }
 
 }
