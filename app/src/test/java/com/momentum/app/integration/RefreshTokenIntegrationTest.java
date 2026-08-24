@@ -10,6 +10,7 @@ import com.momentum.app.dto.auth.AuthResponse;
 import com.momentum.app.dto.auth.LoginRequest;
 import com.momentum.app.dto.auth.RefreshTokenRequest;
 import com.momentum.app.dto.auth.RegisterRequest;
+import com.momentum.app.dto.user.ChangePasswordRequest;
 
 class RefreshTokenIntegrationTest extends IntegrationTestBase {
 
@@ -87,4 +88,18 @@ class RefreshTokenIntegrationTest extends IntegrationTestBase {
         assertThat(deletion.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
         assertThat(refreshTokenRepository.count()).isZero();
     }
+    @Test
+    void changingThePasswordRevokesExistingRefreshTokens() {
+        AuthResponse auth = register("nora");
+
+        ResponseEntity<String> change = rest.exchange("/api/users/me/password", HttpMethod.PATCH,
+                authedRequest(auth.accessToken(),
+                        new ChangePasswordRequest("password123", "newpassword456")),
+                String.class);
+
+        assertThat(change.getStatusCode()).isEqualTo(HttpStatus.NO_CONTENT);
+        assertThat(refreshTokenRepository.count()).isZero();
+        assertThat(refresh(auth.refreshToken()).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
 }
