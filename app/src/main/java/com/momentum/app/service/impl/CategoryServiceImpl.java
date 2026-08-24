@@ -102,7 +102,13 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long userId, Long categoryId) {
-        categoryRepository.delete(findCategory(userId, categoryId));
+        Category category = findCategory(userId, categoryId);
+
+        if (category.getTasks() != null) {
+            category.getTasks().forEach(task -> task.setCategory(null));
+        }
+
+        categoryRepository.delete(category);
     }
 
     private CategoryResponse toResponse(Category category) {
