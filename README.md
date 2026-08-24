@@ -12,7 +12,7 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 |---|---|
 | REST API | Done: auth, accounts, tasks, subtasks, categories |
 | Authentication | Done: stateless JWT with access and refresh tokens |
-| Database + migrations | Done: MySQL with Flyway |
+| Database + migrations | Done: PostgreSQL with Flyway |
 | API documentation | Done: OpenAPI 3 via springdoc |
 | Tests | Unit, slice, and container-backed integration |
 | Web client | Done: board, subtasks, categories, account |
@@ -24,7 +24,7 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 momentum
 ├── app                  Spring Boot backend (Java 21, Maven)
 ├── ui                   React web client (Vite, TypeScript)
-├── docker-compose.yml   MySQL for local development
+├── docker-compose.yml   PostgreSQL for local development
 └── .env.example         Template for the environment variables the app needs
 ```
 
@@ -38,7 +38,7 @@ You need **JDK 21 or newer**, **Node 20 or newer**, and **Docker**.
 cp .env.example .env
 ```
 
-`.env` is gitignored. `JWT_SECRET` must be at least 32 characters or the app refuses to start. `DB_PASSWORD` becomes the MySQL container's root password on first run.
+`.env` is gitignored. `JWT_SECRET` must be at least 32 characters or the app refuses to start. `DB_PASSWORD` becomes the PostgreSQL container's password on first run.
 
 **2. Start the database.**
 
@@ -46,7 +46,7 @@ cp .env.example .env
 docker compose up -d
 ```
 
-MySQL comes up on port **3308** (3306 and 3307 are commonly taken by other installs; change `DB_PORT` if 3308 is busy too).
+PostgreSQL comes up on port **5433** (5432 is commonly taken by a local install; change `DB_PORT` if 5433 is busy too).
 
 **3. Start the API,** in its own terminal:
 
@@ -95,7 +95,7 @@ HTTP request
    -> Controller                validates the request body, no business logic
    -> Service                   the rules live here, including "do you own this?"
    -> Repository                Spring Data JPA
-   -> MySQL
+   -> PostgreSQL
 ```
 
 Anything thrown along the way is caught by `GlobalExceptionHandler` and turned into a consistent JSON error, so controllers contain no `try`/`catch`.
@@ -133,7 +133,7 @@ Every error, including ones raised inside the security filters, comes back in th
 
 ## Database
 
-MySQL, with the schema managed by Flyway migrations in `app/src/main/resources/db/migration`. Hibernate runs in `validate` mode, so it compares the entities against the migrated schema at startup and refuses to boot if they disagree. Schema changes are always a reviewable file, never a side effect of starting the app.
+PostgreSQL, with the schema managed by Flyway migrations in `app/src/main/resources/db/migration`. Hibernate runs in `validate` mode, so it compares the entities against the migrated schema at startup and refuses to boot if they disagree. Schema changes are always a reviewable file, never a side effect of starting the app.
 
 To change the schema, add `V{n}__description.sql`. Never edit a migration that has already run.
 
@@ -150,10 +150,10 @@ Four layers, each proving something the others cannot:
 |---|---|
 | Service (Mockito) | Business rules and ownership checks |
 | Controller (`@WebMvcTest`) | Status codes, validation, the real security filter chain |
-| Repository (`@DataJpaTest`) | The generated SQL, against real MySQL |
+| Repository (`@DataJpaTest`) | The generated SQL, against real PostgreSQL |
 | Integration (`@SpringBootTest`) | Full journeys over HTTP with real tokens |
 
-The repository and integration layers run against MySQL in Testcontainers, so **Docker must be running** for the whole suite to execute. Without Docker they skip rather than fail, which means a green build on a machine with no Docker has not tested those layers.
+The repository and integration layers run against PostgreSQL in Testcontainers, so **Docker must be running** for the whole suite to execute. Without Docker they skip rather than fail, which means a green build on a machine with no Docker has not tested those layers.
 
 The integration suite includes an adversarial one: two users register, and one tries to read, edit, and delete the other's data through every endpoint that accepts an id.
 

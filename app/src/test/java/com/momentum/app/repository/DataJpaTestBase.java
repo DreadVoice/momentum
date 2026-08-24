@@ -4,10 +4,10 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import org.testcontainers.mysql.MySQLContainer;
+import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
- * Repository tests backed by MySQL and Flyway.
+ * Repository tests backed by PostgreSQL and Flyway.
  */
 @DataJpaTest(properties = {
         "spring.jpa.hibernate.ddl-auto=validate",
@@ -18,5 +18,5 @@ import org.testcontainers.mysql.MySQLContainer;
 abstract class DataJpaTestBase {
 
     @ServiceConnection
-    static final MySQLContainer MYSQL = new MySQLContainer("mysql:8.4");
+    static final PostgreSQLContainer POSTGRES = new PostgreSQLContainer("postgres:17");
 }
