@@ -43,7 +43,7 @@ cp .env.example .env
 **2. Start the database.**
 
 ```bash
-docker compose up -d
+docker compose up -d postgres
 ```
 
 PostgreSQL comes up on port **5433** (5432 is commonly taken by a local install; change `DB_PORT` if 5433 is busy too).
@@ -69,6 +69,26 @@ Open `http://localhost:5173` and register an account from the sign-in card. Ther
 The client reads its API origin from `VITE_API_BASE_URL`, which defaults to `http://localhost:8080`; copy `ui/.env.example` to `ui/.env.local` to change it.
 
 > Register and login are rate limited to **5 requests per minute per IP**. If repeated auth testing starts returning *Too many attempts*, that is the backend refusing you: wait a minute, or raise `RATELIMIT_CAPACITY` in `.env` and restart the API.
+
+## Running it in containers
+
+`docker compose up -d --build` builds and runs all three services: PostgreSQL, the API, and the client behind nginx.
+
+| Service | URL |
+|---|---|
+| Client | http://localhost:8081 |
+| API | http://localhost:8080 |
+| PostgreSQL | localhost:5433 |
+
+Two things are worth understanding about how the client reaches the API, because they are easy to get wrong.
+
+The client runs in your browser, not inside its container, so it cannot use the compose service name. It calls the API on a published host port, which is why `VITE_API_BASE_URL` defaults to `http://localhost:8080` while the API itself reaches the database at `postgres:5432` over the compose network.
+
+Vite inlines environment variables at build time, so `VITE_API_BASE_URL` is a build argument rather than a runtime one. Changing it means rebuilding the client image.
+
+Because the browser loads the client from `http://localhost:8081` and calls an API on a different port, every request is cross-origin. `CORS_ALLOWED_ORIGINS` must therefore list the client origin; it defaults to both the Vite dev server and the containerised client.
+
+The API image pins the JVM to a 256 MB heap with SerialGC so it fits a 512 MB container. Override `JAVA_OPTS` if you run it somewhere larger.
 
 ## API reference
 
