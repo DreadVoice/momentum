@@ -29,6 +29,11 @@
       "name": "app.ratelimit.period-seconds",
       "type": "java.lang.Long",
       "description": "Length of the rate-limiting window in seconds."
+    },
+    {
+      "name": "app.ratelimit.trust-forwarded-header",
+      "type": "java.lang.Boolean",
+      "description": "Whether to read the client address from X-Forwarded-For. Enable only behind a trusted proxy."
     }
   ]
 }

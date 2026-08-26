@@ -42,13 +42,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final int capacity;
     private final Duration period;
+    private final boolean trustForwardedHeader;
 
     public RateLimitFilter(ObjectMapper objectMapper,
             @Value("${app.ratelimit.capacity:5}") int capacity,
-            @Value("${app.ratelimit.period-seconds:60}") long periodSeconds) {
+            @Value("${app.ratelimit.period-seconds:60}") long periodSeconds,
+            @Value("${app.ratelimit.trust-forwarded-header:true}") boolean trustForwardedHeader) {
         this.objectMapper = objectMapper;
         this.capacity = capacity;
         this.period = Duration.ofSeconds(periodSeconds);
+        this.trustForwardedHeader = trustForwardedHeader;
     }
 
     @Override
@@ -86,9 +89,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
 
     /** Behind a proxy the peer address is the proxy, so prefer the first forwarded hop. */
     private String clientAddress(HttpServletRequest request) {
-        String forwarded = request.getHeader("X-Forwarded-For");
-        if (forwarded != null && !forwarded.isBlank()) {
-            return forwarded.split(",")[0].trim();
+        if (trustForwardedHeader) {
+            String forwarded = request.getHeader("X-Forwarded-For");
+            if (forwarded != null && !forwarded.isBlank()) {
+                return forwarded.split(",")[0].trim();
+            }
         }
         return request.getRemoteAddr();
     }
