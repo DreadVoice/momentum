@@ -102,14 +102,26 @@ Anything thrown along the way is caught by `GlobalExceptionHandler` and turned i
 
 ## Authentication and ownership
 
-Authentication is stateless. You register or log in, get two tokens back, and send the access token on every subsequent request as `Authorization: Bearer <accessToken>`.
+You register or log in, get two tokens back, and send the access token on every subsequent request as `Authorization: Bearer <accessToken>`. Access tokens are stateless; refresh tokens are persisted as SHA-256 hashes so they can be revoked.
 
 | Token | Lifetime | Purpose |
 |---|---|---|
 | Access | 15 minutes | Sent with every request |
-| Refresh | 7 days | Exchanged at `/api/auth/refresh` for a fresh pair |
+| Refresh | 7 days | Exchanged at `/api/auth/refresh` for a fresh pair, and rotated on every use |
 
-Both are signed with HS256 and carry the user's id as the subject, plus a `type` claim so a refresh token cannot be used in place of an access token. Passwords are stored as BCrypt hashes and are never returned by any endpoint.
+Both are signed with HS256 and carry the user's id as the subject, a unique `jti`, and a `type` claim so a refresh token cannot be used in place of an access token. Passwords are stored as BCrypt hashes and are never returned by any endpoint.
+
+Refreshing rotates the token: the row backing the old one is deleted and a new pair is issued. Three things end a session early:
+
+- `POST /api/auth/logout` with the refresh token, which deletes its row and returns 204. It is idempotent, so an unknown token still returns 204 rather than revealing whether it was valid.
+- Changing the password, which revokes every refresh token for that account.
+- Presenting a refresh token that has already been rotated. That is the signature of a stolen token, so every token for the account is revoked rather than just the one presented.
+
+An access token already issued stays valid until it expires, so revocation is not instant: worst case a session survives 15 more minutes.
+
+The browser client keeps both tokens in `localStorage`. That is readable by any script running on the page, which is the trade made for a stateless API with no cookie handling; it is why the API sets `allowCredentials=false` and the client sends `credentials: omit`.
+
+`POST /api/auth/login` and `POST /api/auth/register` are rate limited per client address, 5 requests a minute by default. The buckets are held in memory, so limits reset on restart and are not shared between instances. The client address is read from `X-Forwarded-For`, which is correct behind a proxy that overwrites it and wrong if the app is exposed directly; set `RATELIMIT_TRUST_FORWARDED=false` in that case.
 
 **No endpoint accepts a user id.** The caller's identity comes only from the verified token, so there is no field a client could change to reach someone else's data. Services take the caller's id as their first argument and check ownership themselves.
 
