@@ -27,25 +27,25 @@ production. The dev server origin must appear in the API's
 
 ## Features
 
-- **Board** — Pending / In Progress / Completed columns, sorting and filtering
+- **Board**: Pending / In Progress / Completed columns, sorting and filtering
   by category, board and priority, account-wide counters including overdue.
-- **Task detail** — a split panel with full metadata and subtask management
+- **Task detail**: a split panel with full metadata and subtask management
   (add, rename, toggle, delete).
-- **Task editing** — create, edit, move between boards and delete.
-- **Categories** — create, rename and delete.
-- **Account** — profile, password change and account deletion.
+- **Task editing**: create, edit, move between boards and delete.
+- **Categories**: create, rename and delete.
+- **Account**: profile, password change and account deletion.
 
 ## Design system
 
 A single theme, *warm paper*, declared as tokens on `[data-theme='light']`.
 No dark or black mode is implemented.
 
-- **Typography** — Instrument Serif for display and italic accents, Schibsted
+- **Typography**: Instrument Serif for display and italic accents, Schibsted
   Grotesk for UI and body, JetBrains Mono for labels, timestamps and meta.
-- **Accent** — one warm vermilion, `oklch(58% 0.17 38)`.
-- **Chrome** — a faux window bar (three dots plus the app name) frames the app;
+- **Accent**: one warm vermilion, `oklch(58% 0.17 38)`.
+- **Chrome**: a faux window bar (three dots plus the app name) frames the app;
   1px hairline borders, 14px radius, one soft diffused shadow, no gradients.
-- **Layout** — grid-based split panels with hairline dividers.
+- **Layout**: grid-based split panels with hairline dividers.
 - `.m-primary` is the primary button; `.m-oauth` is the neutral secondary
   treatment, keeping the design system's class name even though this API has no
   OAuth provider.

@@ -2,6 +2,8 @@
 
 A task manager built as a full-stack project: a Spring Boot REST API paired with a React web client.
 
+**Live at [momentum-ui.onrender.com](https://momentum-ui.onrender.com).** The API is at [momentum-api-x6j1.onrender.com](https://momentum-api-x6j1.onrender.com), with its [Swagger UI](https://momentum-api-x6j1.onrender.com/swagger-ui.html) public. Both run on Render's free tier, so the first request after a quiet spell wakes the API and can take up to a minute.
+
 **The backend is complete and tested, and the web client covers the full API surface.** `ui/` holds a React + TypeScript client: the three task boards, a task detail panel with subtasks, categories and account settings.
 
 Momentum lets you keep tasks, sort them into categories, break them into subtasks, and see what is overdue. Accounts are isolated: no request can reach another account's data.
@@ -16,7 +18,7 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 | API documentation | Done: OpenAPI 3 via springdoc |
 | Tests | Unit, slice, and container-backed integration |
 | Web client | Done: board, subtasks, categories, account |
-| Deployment | Not set up |
+| Deployment | Done: Render, static client with a containerised API and managed PostgreSQL |
 
 ## Repository layout
 
@@ -24,7 +26,8 @@ Momentum lets you keep tasks, sort them into categories, break them into subtask
 momentum
 ├── app                  Spring Boot backend (Java 21, Maven)
 ├── ui                   React web client (Vite, TypeScript)
-├── docker-compose.yml   PostgreSQL for local development
+├── docker-compose.yml   The whole stack locally: PostgreSQL, API, client
+├── render.yaml          Render blueprint: database, API, static client
 └── .env.example         Template for the environment variables the app needs
 ```
 
@@ -56,7 +59,7 @@ cd app && ./mvnw spring-boot:run
 
 On Windows PowerShell the wrapper is `.\mvnw.cmd` rather than `./mvnw`.
 
-Flyway builds the schema on first boot. Wait for `Started AppApplication` — the API is then on `http://localhost:8080`.
+Flyway builds the schema on first boot. Wait for `Started AppApplication`; the API is then on `http://localhost:8080`.
 
 **4. Start the client,** in a second terminal, from the repository root:
 
@@ -90,14 +93,50 @@ Because the browser loads the client from `http://localhost:8081` and calls an A
 
 The API image pins the JVM to a 256 MB heap with SerialGC so it fits a 512 MB container. Override `JAVA_OPTS` if you run it somewhere larger.
 
+## Deployment
+
+The deployed stack is three Render resources, declared in [render.yaml](render.yaml) and created as a Blueprint:
+
+| Resource | Type | What it runs |
+|---|---|---|
+| `momentum-ui` | Static Site | `ui/dist`, built with `npm ci && npm run build` and served from Render's CDN |
+| `momentum-api` | Web Service (Docker) | `app/Dockerfile`, health checked at `/api/health` |
+| `momentum-db` | PostgreSQL | Managed instance, reached over the internal network |
+
+The client is static files, so it needs no server of its own; `ui/Dockerfile` and `ui/nginx.conf` exist for docker compose and are unused on Render. The database and the API must sit in the same region, because the API reaches the database on its internal hostname. A static site has no region at all; it is served everywhere.
+
+Five environment variables carry the wiring:
+
+| Variable | Set on | Value |
+|---|---|---|
+| `DB_URL` | API | `jdbc:postgresql://<internal-host>/<database>`, with no credentials in the URL |
+| `DB_USERNAME`, `DB_PASSWORD` | API | Read from the database resource by the blueprint |
+| `JWT_SECRET` | API | Generated once by Render; rotating it invalidates every issued token |
+| `CORS_ALLOWED_ORIGINS` | API | The exact client origin, no trailing slash |
+| `VITE_API_BASE_URL` | Client | The API origin, inlined at build time, so changing it needs a rebuild |
+
+Three of those cannot be filled in on the first apply, because neither the database nor the service URLs exist until Render has created them. The blueprint marks them `sync: false`: apply once with placeholders, then set the real values and redeploy. The API's first deploy is expected to fail on the placeholder database URL.
+
+`DB_URL` is the one worth care. Render hands out a connection string of the form `postgresql://user:password@host/database`, but the PostgreSQL JDBC driver does not accept credentials in the authority, and the username and password arrive separately. Keep the host and the database name, drop the rest, and use the internal host rather than the external one.
+
+### The free tier, and what the client does about it
+
+A free web service sleeps after 15 minutes without traffic, and the next request pays roughly 50 seconds of cold start. Two things in the client exist because of it.
+
+A waking service answers with 502 or 503 before it accepts traffic. That is a valid HTTP response rather than a network failure, so session restore treats 502, 503 and 504 as transient alongside a dropped connection, and retries with backoff instead of clearing the tokens. Without that, anyone arriving while the API was starting would be silently signed out.
+
+The restore screen also says what is happening: the spinner carries visible text, and after five seconds it adds a note that the server is waking up. A minute of silence reads as a broken page; a minute with an explanation reads as a slow one.
+
+A free PostgreSQL instance is deleted, not paused, after 30 days.
+
 ## API reference
 
 The API documents itself. With the app running:
 
-| | |
-|---|---|
-| Swagger UI | http://localhost:8080/swagger-ui.html |
-| OpenAPI spec | http://localhost:8080/v3/api-docs |
+| | Local | Deployed |
+|---|---|---|
+| Swagger UI | http://localhost:8080/swagger-ui.html | https://momentum-api-x6j1.onrender.com/swagger-ui.html |
+| OpenAPI spec | http://localhost:8080/v3/api-docs | https://momentum-api-x6j1.onrender.com/v3/api-docs |
 
 Both are public. Every other endpoint outside `/api/auth/**` and `GET /api/health` needs a bearer token, which you can paste into Swagger UI's **Authorize** box to try the endpoints directly.
 
@@ -193,7 +232,7 @@ The integration suite includes an adversarial one: two users register, and one t
 
 `ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three task boards with sorting and filtering, a task detail panel with subtask management, category CRUD, and account settings. It ships a single light theme, *warm paper*.
 
-The client calls the API cross-origin rather than through a dev-server proxy, so the CORS contract is exercised in development exactly as in production. The API allows browser requests from the origins in `CORS_ALLOWED_ORIGINS`, which defaults to the Vite dev server at `http://localhost:5173`; a deployed client needs its own origin added there.
+The client calls the API cross-origin rather than through a dev-server proxy, so the CORS contract is exercised in development exactly as in production. The API allows browser requests from the origins in `CORS_ALLOWED_ORIGINS`, which defaults to the Vite dev server at `http://localhost:5173`; the deployed client's origin is set there too. `setAllowedOrigins` matches exactly, so a trailing slash is enough to break every request.
 
 Two API details shape the client, and are worth knowing before changing it:
 
@@ -204,7 +243,6 @@ See [ui/README.md](ui/README.md) for commands and design notes.
 
 ## Roadmap
 
-- Dockerfile and a deployment target
 - Drag-and-drop between the boards
 - Reassigning a task's category from the category screen
 
