@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react'
 import { ErrorBoundary } from './components/common/ErrorBoundary'
-import { Spinner } from './components/common/Spinner'
+import { LoadingScreen } from './components/common/LoadingScreen'
 import { AppNav } from './components/layout/AppNav'
 import type { AppView } from './components/layout/appViews'
 import { WindowChrome } from './components/layout/WindowChrome'
@@ -49,7 +49,10 @@ function AppRoutes() {
   if (state.kind === 'restoring') {
     return (
       <div className="app-shell app-shell--centered">
-        <Spinner label="Restoring your session" />
+        <LoadingScreen
+          label="Restoring your session"
+          slowMessage="The server is waking up. This can take up to a minute."
+        />
       </div>
     )
   }

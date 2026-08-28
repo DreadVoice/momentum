@@ -11,6 +11,8 @@ import type {
 } from '../types/api'
 import { AuthContext, type AuthContextValue, type AuthState } from './authContext'
 
+const RESTORE_RETRY_DELAYS_MS = [1000, 2000, 4000, 8000, 15000, 15000]
+
 interface AuthProviderProps {
   readonly children: ReactNode
 }
@@ -52,31 +54,56 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
 
     const controller = new AbortController()
+    let retryTimer: number | undefined
 
-    authApi
-      .getCurrentUser(controller.signal)
-      .then((user) => {
-        if (mountedRef.current) {
-          setState({ kind: 'authenticated', user })
-        }
+    const wait = (ms: number) =>
+      new Promise<void>((resolve) => {
+        retryTimer = window.setTimeout(resolve, ms)
       })
-      .catch((error: unknown) => {
-        if (isAbortError(error)) {
-          return
-        }
-        // A network outage should not destroy a session that may still be good.
-        const keepTokens = isApiError(error) && error.isNetworkError
-        if (keepTokens) {
+
+    const restore = async (): Promise<void> => {
+      for (let attempt = 0; ; attempt += 1) {
+        try {
+          const user = await authApi.getCurrentUser(controller.signal)
           if (mountedRef.current) {
-            setState({ kind: 'anonymous', sessionExpired: false })
+            setState({ kind: 'authenticated', user })
           }
           return
+        } catch (error: unknown) {
+          if (isAbortError(error)) {
+            return
+          }
+
+          if (!isApiError(error) || !error.isTransient) {
+            endSession(false)
+            return
+          }
+
+          const delayMs = RESTORE_RETRY_DELAYS_MS[attempt]
+
+          if (delayMs === undefined) {
+            if (mountedRef.current) {
+              setState({ kind: 'anonymous', sessionExpired: false })
+            }
+            return
+          }
+
+          await wait(delayMs)
+
+          if (controller.signal.aborted) {
+            return
+          }
         }
-        endSession(false)
-      })
+      }
+    }
+
+    void restore()
 
     return () => {
       controller.abort()
+      if (retryTimer !== undefined) {
+        window.clearTimeout(retryTimer)
+      }
     }
   }, [endSession])
 

@@ -34,7 +34,6 @@ services:
   - type: web
     name: momentum-ui
     runtime: static
-    region: singapore
     rootDir: ui
     buildCommand: npm ci && npm run build
     staticPublishPath: dist

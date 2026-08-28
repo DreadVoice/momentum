@@ -31,6 +31,14 @@ export class ApiError extends Error {
     return this.status === 401
   }
 
+  get isServiceUnavailable(): boolean {
+    return this.status === 502 || this.status === 503 || this.status === 504
+  }
+
+  get isTransient(): boolean {
+    return this.isNetworkError || this.isServiceUnavailable
+  }
+
   get isRateLimited(): boolean {
     return this.status === 429
   }
