@@ -3,10 +3,19 @@ import { usersApi } from '../../api/usersApi'
 import { Alert } from '../../components/common/Alert'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { Spinner } from '../../components/common/Spinner'
+import { Button } from '../../components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '../../components/ui/card'
 import { useAuth } from '../../hooks/useAuth'
 import { isApiError, toErrorMessage } from '../../lib/ApiError'
 import { formatTimestamp } from '../../lib/date'
 import { LIMITS, USERNAME_PATTERN, type UserResponse } from '../../types/api'
+import { FormField } from '../auth/FormField'
 
 interface AccountViewProps {
   readonly user: UserResponse
@@ -14,11 +23,7 @@ interface AccountViewProps {
 
 type FieldErrors = Readonly<Record<string, string>>
 
-interface ProfileFormProps {
-  readonly user: UserResponse
-}
-
-function ProfileForm({ user }: ProfileFormProps) {
+function ProfileForm({ user }: { readonly user: UserResponse }) {
   const { applyUser } = useAuth()
   const [username, setUsername] = useState(user.username)
   const [email, setEmail] = useState(user.email)
@@ -32,10 +37,7 @@ function ProfileForm({ user }: ProfileFormProps) {
     const errors: Record<string, string> = {}
     const trimmedName = username.trim()
 
-    if (
-      trimmedName.length < LIMITS.usernameMin ||
-      trimmedName.length > LIMITS.usernameMax
-    ) {
+    if (trimmedName.length < LIMITS.usernameMin || trimmedName.length > LIMITS.usernameMax) {
       errors.username = 'Username must be between 3 and 50 characters.'
     } else if (!USERNAME_PATTERN.test(trimmedName)) {
       errors.username = 'Use only letters, numbers, underscores and hyphens.'
@@ -97,86 +99,61 @@ function ProfileForm({ user }: ProfileFormProps) {
   )
 
   return (
-    <form className="stack" onSubmit={handleSubmit} noValidate>
-      <h3 className="micro">Profile</h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>Profile</CardTitle>
+        <CardDescription>Your username and email, visible only to you.</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          {error !== null && <Alert tone="error" message={error} />}
+          {savedAt !== null && (
+            <Alert tone="success" message={`Profile saved at ${savedAt}.`} />
+          )}
 
-      {error !== null && <Alert tone="error" message={error} />}
-      {savedAt !== null && <Alert tone="success" message={`Profile saved at ${savedAt}.`} />}
+          <FormField
+            label="Username"
+            type="text"
+            value={username}
+            error={fieldErrors.username}
+            autoComplete="username"
+            disabled={isSaving}
+            maxLength={LIMITS.usernameMax}
+            onChange={setUsername}
+          />
 
-      <label className="field">
-        <span className="field__label">Username</span>
-        <input
-          className={
-            fieldErrors.username !== undefined
-              ? 'field__input field__input--invalid'
-              : 'field__input'
-          }
-          type="text"
-          value={username}
-          maxLength={LIMITS.usernameMax}
-          autoComplete="username"
-          disabled={isSaving}
-          onChange={(event) => {
-            setUsername(event.target.value)
-          }}
-        />
-        {fieldErrors.username !== undefined && (
-          <span className="field__error">{fieldErrors.username}</span>
-        )}
-      </label>
+          <FormField
+            label="Email"
+            type="email"
+            value={email}
+            error={fieldErrors.email}
+            autoComplete="email"
+            disabled={isSaving}
+            onChange={setEmail}
+          />
 
-      <label className="field">
-        <span className="field__label">Email</span>
-        <input
-          className={
-            fieldErrors.email !== undefined
-              ? 'field__input field__input--invalid'
-              : 'field__input'
-          }
-          type="email"
-          value={email}
-          autoComplete="email"
-          disabled={isSaving}
-          onChange={(event) => {
-            setEmail(event.target.value)
-          }}
-        />
-        {fieldErrors.email !== undefined && (
-          <span className="field__error">{fieldErrors.email}</span>
-        )}
-      </label>
+          <FormField
+            label="Profile photo URL"
+            type="url"
+            value={profilePhoto}
+            error={fieldErrors.profilePhoto}
+            autoComplete="photo"
+            disabled={isSaving}
+            optional
+            placeholder="https://"
+            maxLength={LIMITS.profilePhotoMax}
+            onChange={setProfilePhoto}
+          />
 
-      <label className="field">
-        <span className="field__label">
-          Profile photo URL <span className="field__optional">optional</span>
-        </span>
-        <input
-          className={
-            fieldErrors.profilePhoto !== undefined
-              ? 'field__input field__input--invalid'
-              : 'field__input'
-          }
-          type="url"
-          value={profilePhoto}
-          maxLength={LIMITS.profilePhotoMax}
-          placeholder="https://"
-          disabled={isSaving}
-          onChange={(event) => {
-            setProfilePhoto(event.target.value)
-          }}
-        />
-        {fieldErrors.profilePhoto !== undefined && (
-          <span className="field__error">{fieldErrors.profilePhoto}</span>
-        )}
-      </label>
-
-      <div>
-        <button type="submit" className="m-primary" disabled={isSaving}>
-          {isSaving && <Spinner label="Saving" size="sm" />}
-          Save profile
-        </button>
-      </div>
-    </form>
+          <div className="flex justify-end">
+            <Button type="submit" disabled={isSaving}>
+              {isSaving && <Spinner label="Saving" size="sm" />}
+              Save profile
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -224,73 +201,62 @@ function PasswordForm() {
   )
 
   return (
-    <form className="stack" onSubmit={handleSubmit} noValidate>
-      <h3 className="micro">Password</h3>
+    <Card>
+      <CardHeader>
+        <CardTitle>Password</CardTitle>
+        <CardDescription>
+          Changing your password keeps existing sessions signed in.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          {error !== null && <Alert tone="error" message={error} />}
+          {success && (
+            <Alert tone="success" message="Password changed. Existing sessions stay signed in." />
+          )}
 
-      {error !== null && <Alert tone="error" message={error} />}
-      {success && (
-        <Alert
-          tone="success"
-          message="Password changed. Existing sessions stay signed in."
-        />
-      )}
+          <FormField
+            label="Current password"
+            type="password"
+            value={currentPassword}
+            autoComplete="current-password"
+            disabled={isSaving}
+            onChange={setCurrentPassword}
+          />
 
-      <label className="field">
-        <span className="field__label">Current password</span>
-        <input
-          className="field__input"
-          type="password"
-          value={currentPassword}
-          autoComplete="current-password"
-          disabled={isSaving}
-          onChange={(event) => {
-            setCurrentPassword(event.target.value)
-          }}
-        />
-      </label>
+          <FormField
+            label="New password"
+            type="password"
+            value={newPassword}
+            autoComplete="new-password"
+            disabled={isSaving}
+            hint="At least 8 characters."
+            maxLength={LIMITS.passwordMax}
+            onChange={setNewPassword}
+          />
 
-      <label className="field">
-        <span className="field__label">New password</span>
-        <input
-          className="field__input"
-          type="password"
-          value={newPassword}
-          maxLength={LIMITS.passwordMax}
-          autoComplete="new-password"
-          disabled={isSaving}
-          onChange={(event) => {
-            setNewPassword(event.target.value)
-          }}
-        />
-        <span className="field__hint">At least 8 characters.</span>
-      </label>
+          <FormField
+            label="Confirm new password"
+            type="password"
+            value={confirmation}
+            autoComplete="new-password"
+            disabled={isSaving}
+            maxLength={LIMITS.passwordMax}
+            onChange={setConfirmation}
+          />
 
-      <label className="field">
-        <span className="field__label">Confirm new password</span>
-        <input
-          className="field__input"
-          type="password"
-          value={confirmation}
-          maxLength={LIMITS.passwordMax}
-          autoComplete="new-password"
-          disabled={isSaving}
-          onChange={(event) => {
-            setConfirmation(event.target.value)
-          }}
-        />
-      </label>
-
-      <div>
-        <button
-          type="submit"
-          className="m-primary"
-          disabled={isSaving || currentPassword.length === 0 || newPassword.length === 0}
-        >
-          {isSaving && <Spinner label="Saving" size="sm" />}
-          Change password
-        </button>
-      </div>
-    </form>
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={isSaving || currentPassword.length === 0 || newPassword.length === 0}
+            >
+              {isSaving && <Spinner label="Saving" size="sm" />}
+              Change password
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -316,33 +282,31 @@ function DangerZone({ username }: { readonly username: string }) {
   }, [password])
 
   return (
-    <div className="stack danger-zone">
-      <h3 className="micro">Delete account</h3>
-      <p className="meta">
-        This permanently removes your tasks, subtasks and categories. It cannot be
-        undone.
-      </p>
+    <Card className="border-destructive/35">
+      <CardHeader>
+        <CardTitle className="text-destructive">Delete account</CardTitle>
+        <CardDescription>
+          This permanently removes your tasks, subtasks and categories. It cannot be undone.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="flex flex-col gap-4">
+        {error !== null && <Alert tone="error" message={error} />}
 
-      {error !== null && <Alert tone="error" message={error} />}
-
-      <label className="field">
-        <span className="field__label">Confirm your password</span>
-        <input
-          className="field__input"
+        <FormField
+          label="Confirm your password"
           type="password"
           value={password}
           autoComplete="current-password"
-          onChange={(event) => {
-            setPassword(event.target.value)
-          }}
+          disabled={false}
+          onChange={setPassword}
         />
-      </label>
 
-      <div>
-        <button type="button" className="m-oauth m-danger" onClick={handleOpen}>
-          Delete my account
-        </button>
-      </div>
+        <div className="flex justify-end">
+          <Button type="button" variant="destructive" onClick={handleOpen}>
+            Delete my account
+          </Button>
+        </div>
+      </CardContent>
 
       {isConfirming && (
         <ConfirmDialog
@@ -356,37 +320,28 @@ function DangerZone({ username }: { readonly username: string }) {
           }}
         />
       )}
-    </div>
+    </Card>
   )
 }
 
 export function AccountView({ user }: AccountViewProps) {
   return (
-    <div className="panel-split">
-      <section className="panel-split__aside">
-        <h2 className="panel-split__title">Account</h2>
-        <p className="panel-split__lede display-accent">
-          Your details, your password, your data.
+    <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 sm:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-xl font-semibold tracking-tight">Account</h1>
+          <p className="text-sm text-muted-foreground">
+            Your details, your password, your data.
+          </p>
+        </div>
+        <p className="text-xs text-muted-foreground">
+          Member since <span className="tabular">{formatTimestamp(user.createdAt)}</span>
         </p>
-        <dl className="detail__meta">
-          <div>
-            <dt className="micro">Username</dt>
-            <dd className="meta">{user.username}</dd>
-          </div>
-          <div>
-            <dt className="micro">Member since</dt>
-            <dd className="meta">{formatTimestamp(user.createdAt)}</dd>
-          </div>
-        </dl>
-      </section>
+      </div>
 
-      <section className="panel-split__main account-sections">
-        <ProfileForm user={user} />
-        <div className="detail__divider" role="presentation" />
-        <PasswordForm />
-        <div className="detail__divider" role="presentation" />
-        <DangerZone username={user.username} />
-      </section>
+      <ProfileForm user={user} />
+      <PasswordForm />
+      <DangerZone username={user.username} />
     </div>
   )
 }

@@ -1,7 +1,16 @@
-import { useCallback, useRef, useState } from 'react'
-import { useDismissable } from '../../hooks/useDismissable'
+import { MoreVerticalIcon, PencilIcon, Trash2Icon } from 'lucide-react'
+import { useCallback } from 'react'
+import { Button } from '../../components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '../../components/ui/dropdown-menu'
 import { TASK_STATUSES, type TaskResponse, type TaskStatus } from '../../types/api'
-import { STATUS_LABELS } from './boardConfig'
+import { STATUS_DOT_CLASSES, STATUS_LABELS } from './boardConfig'
 
 interface TaskCardMenuProps {
   readonly task: TaskResponse
@@ -11,81 +20,70 @@ interface TaskCardMenuProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-export function TaskCardMenu({ task, disabled, onEdit, onMove, onDelete }: TaskCardMenuProps) {
-  const [isOpen, setIsOpen] = useState(false)
-  const containerRef = useRef<HTMLDivElement | null>(null)
-  const triggerRef = useRef<HTMLButtonElement | null>(null)
-
-  const close = useCallback(() => {
-    setIsOpen(false)
-    triggerRef.current?.focus()
-  }, [])
-
-  useDismissable(containerRef, isOpen, close)
-
-  const handleToggle = useCallback(() => {
-    setIsOpen((current) => !current)
-  }, [])
-
+/**
+ * The keyboard-and-pointer route for everything dragging can do, plus edit and
+ * delete. Radix handles focus return, roving focus and Escape.
+ */
+export function TaskCardMenu({
+  task,
+  disabled,
+  onEdit,
+  onMove,
+  onDelete,
+}: TaskCardMenuProps) {
   const handleEdit = useCallback(() => {
-    setIsOpen(false)
     onEdit(task)
   }, [onEdit, task])
 
   const handleDelete = useCallback(() => {
-    setIsOpen(false)
     onDelete(task)
   }, [onDelete, task])
 
+  const otherStatuses = TASK_STATUSES.filter((candidate) => candidate !== task.status)
+
   return (
-    <div className="task-menu" ref={containerRef}>
-      <button
-        type="button"
-        ref={triggerRef}
-        className="icon-btn"
-        onClick={handleToggle}
-        disabled={disabled}
-        aria-haspopup="menu"
-        aria-expanded={isOpen}
-        aria-label={`Actions for ${task.title}`}
-      >
-        &#8942;
-      </button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          disabled={disabled}
+          aria-label={`Actions for ${task.title}`}
+          className="-mr-1 -mt-1 size-7 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover/card:opacity-100 focus-visible:opacity-100 data-[state=open]:opacity-100"
+        >
+          <MoreVerticalIcon />
+        </Button>
+      </DropdownMenuTrigger>
 
-      {isOpen && (
-        <div className="task-menu__panel" role="menu">
-          <button type="button" role="menuitem" className="task-menu__item" onClick={handleEdit}>
-            Edit task
-          </button>
+      <DropdownMenuContent align="end" className="min-w-44">
+        <DropdownMenuItem onSelect={handleEdit}>
+          <PencilIcon />
+          Edit task
+        </DropdownMenuItem>
 
-          <div className="task-menu__group" role="group" aria-label="Move to">
-            <p className="task-menu__group-label">Move to</p>
-            {TASK_STATUSES.filter((candidate) => candidate !== task.status).map((candidate) => (
-              <button
-                key={candidate}
-                type="button"
-                role="menuitem"
-                className="task-menu__item"
-                onClick={() => {
-                  setIsOpen(false)
-                  onMove(task.id, candidate)
-                }}
-              >
-                {STATUS_LABELS[candidate]}
-              </button>
-            ))}
-          </div>
-
-          <button
-            type="button"
-            role="menuitem"
-            className="task-menu__item task-menu__item--danger"
-            onClick={handleDelete}
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel>Move to</DropdownMenuLabel>
+        {otherStatuses.map((candidate) => (
+          <DropdownMenuItem
+            key={candidate}
+            onSelect={() => {
+              onMove(task.id, candidate)
+            }}
           >
-            Delete task
-          </button>
-        </div>
-      )}
-    </div>
+            <span
+              aria-hidden="true"
+              className={`size-2 shrink-0 rounded-full ${STATUS_DOT_CLASSES[candidate]}`}
+            />
+            {STATUS_LABELS[candidate]}
+          </DropdownMenuItem>
+        ))}
+
+        <DropdownMenuSeparator />
+        <DropdownMenuItem variant="destructive" onSelect={handleDelete}>
+          <Trash2Icon />
+          Delete task
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

@@ -1,6 +1,13 @@
+import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useCallback, useState, type FormEvent } from 'react'
 import { Alert } from '../../components/common/Alert'
 import { Spinner } from '../../components/common/Spinner'
+import { Button } from '../../components/ui/button'
+import { Checkbox } from '../../components/ui/checkbox'
+import { Input } from '../../components/ui/input'
+import { Skeleton } from '../../components/ui/skeleton'
+import { cn } from '../../lib/utils'
 import { LIMITS, type SubTaskResponse } from '../../types/api'
 import { useSubTasks } from './useSubTasks'
 
@@ -39,13 +46,14 @@ function SubTaskRow({ subTask, isPending, onToggle, onRename, onRemove }: SubTas
 
   if (isEditing) {
     return (
-      <li className="subtask">
-        <input
-          className="field__input"
+      <li>
+        <Input
           type="text"
           value={draft}
           maxLength={LIMITS.subTaskTitleMax}
           autoFocus
+          aria-label={`Rename ${subTask.title}`}
+          className="h-8 text-sm"
           onChange={(event) => {
             setDraft(event.target.value)
           }}
@@ -66,45 +74,56 @@ function SubTaskRow({ subTask, isPending, onToggle, onRename, onRemove }: SubTas
   }
 
   return (
-    <li className={isPending ? 'subtask subtask--pending' : 'subtask'}>
-      <label className="subtask__check">
-        <input
-          type="checkbox"
-          checked={subTask.completed}
-          disabled={isPending}
-          onChange={() => {
-            onToggle(subTask.id)
-          }}
-        />
-        <span className={subTask.completed ? 'subtask__title subtask__title--done' : 'subtask__title'}>
-          {subTask.title}
-        </span>
+    <li
+      className={cn(
+        'group/subtask flex items-center gap-2 rounded-md px-1.5 py-1 transition-colors hover:bg-muted/60',
+        isPending && 'opacity-55',
+      )}
+    >
+      <Checkbox
+        id={`subtask-${subTask.id}`}
+        checked={subTask.completed}
+        disabled={isPending}
+        onCheckedChange={() => {
+          onToggle(subTask.id)
+        }}
+      />
+      <label
+        htmlFor={`subtask-${subTask.id}`}
+        className={cn(
+          'min-w-0 flex-1 cursor-pointer text-sm wrap-anywhere select-none',
+          subTask.completed && 'text-muted-foreground line-through decoration-muted-foreground/40',
+        )}
+      >
+        {subTask.title}
       </label>
 
-      <div className="subtask__actions">
-        {isPending && <Spinner label="Updating subtask" size="sm" />}
-        <button
-          type="button"
-          className="icon-btn"
+      <div className="flex shrink-0 items-center gap-0.5">
+        {isPending && <Spinner label="Updating subtask" size="sm" className="text-muted-foreground" />}
+        <Button
+          variant="ghost"
+          size="icon-sm"
           disabled={isPending}
           aria-label={`Rename ${subTask.title}`}
+          className="size-7 text-muted-foreground opacity-0 group-hover/subtask:opacity-100 focus-visible:opacity-100"
           onClick={() => {
             setIsEditing(true)
           }}
         >
-          &#9998;
-        </button>
-        <button
-          type="button"
-          className="icon-btn"
+          <PencilIcon className="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon-sm"
           disabled={isPending}
           aria-label={`Delete ${subTask.title}`}
+          className="size-7 text-muted-foreground opacity-0 group-hover/subtask:opacity-100 hover:text-destructive focus-visible:opacity-100"
           onClick={() => {
             onRemove(subTask.id)
           }}
         >
-          &#10005;
-        </button>
+          <Trash2Icon className="size-3.5" />
+        </Button>
       </div>
     </li>
   )
@@ -114,7 +133,9 @@ export function SubTaskList({ taskId, onChanged }: SubTaskListProps) {
   const subTasks = useSubTasks(taskId)
   const [draft, setDraft] = useState('')
 
+  const total = subTasks.subTasks.length
   const completed = subTasks.subTasks.filter((subTask) => subTask.completed).length
+  const progress = total === 0 ? 0 : Math.round((completed / total) * 100)
 
   const handleAdd = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -138,10 +159,7 @@ export function SubTaskList({ taskId, onChanged }: SubTaskListProps) {
 
   const handleToggle = useCallback(
     (subTaskId: number) => {
-      subTasks
-        .toggle(subTaskId)
-        .then(onChanged)
-        .catch(() => undefined)
+      subTasks.toggle(subTaskId).then(onChanged).catch(() => undefined)
     },
     [subTasks, onChanged],
   )
@@ -155,82 +173,109 @@ export function SubTaskList({ taskId, onChanged }: SubTaskListProps) {
 
   const handleRemove = useCallback(
     (subTaskId: number) => {
-      subTasks
-        .remove(subTaskId)
-        .then(onChanged)
-        .catch(() => undefined)
+      subTasks.remove(subTaskId).then(onChanged).catch(() => undefined)
     },
     [subTasks, onChanged],
   )
 
   return (
-    <section className="subtasks">
-      <header className="subtasks__header">
-        <h3 className="micro">Subtasks</h3>
-        {subTasks.status === 'ready' && subTasks.subTasks.length > 0 && (
-          <span className="meta">
-            {completed}/{subTasks.subTasks.length} done
+    <section className="flex flex-col gap-2.5">
+      <header className="flex items-center justify-between gap-2">
+        <h3 className="text-xs font-medium text-muted-foreground">Subtasks</h3>
+        {subTasks.status === 'ready' && total > 0 && (
+          <span className="tabular text-xs text-muted-foreground">
+            {completed}/{total} done
           </span>
         )}
       </header>
+
+      {subTasks.status === 'ready' && total > 0 && (
+        <div
+          role="progressbar"
+          aria-valuenow={progress}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label={`${progress}% of subtasks complete`}
+          className="h-1 w-full overflow-hidden rounded-full bg-muted"
+        >
+          <motion.div
+            className="h-full rounded-full bg-success"
+            initial={false}
+            animate={{ width: `${String(progress)}%` }}
+            transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          />
+        </div>
+      )}
 
       {subTasks.error !== null && (
         <Alert tone="error" message={subTasks.error} onDismiss={subTasks.dismissError} />
       )}
 
       {subTasks.status === 'loading' && (
-        <p className="subtasks__state">
-          <Spinner label="Loading subtasks" size="sm" /> Loading subtasks…
-        </p>
+        <div className="flex flex-col gap-1.5" aria-hidden="true">
+          <Skeleton className="h-6 w-full" />
+          <Skeleton className="h-6 w-4/5" />
+        </div>
       )}
 
       {subTasks.status === 'error' && (
-        <button type="button" className="m-oauth m-sm" onClick={subTasks.reload}>
+        <Button type="button" variant="outline" size="sm" onClick={subTasks.reload}>
           Retry
-        </button>
+        </Button>
       )}
 
       {subTasks.status === 'ready' && (
         <>
-          {subTasks.subTasks.length === 0 ? (
-            <p className="subtasks__state">No subtasks yet.</p>
+          {total === 0 ? (
+            <p className="text-xs text-muted-foreground">No subtasks yet.</p>
           ) : (
-            <ul className="subtasks__list">
-              {subTasks.subTasks.map((subTask) => (
-                <SubTaskRow
-                  key={subTask.id}
-                  subTask={subTask}
-                  isPending={subTasks.pendingId === subTask.id}
-                  onToggle={handleToggle}
-                  onRename={handleRename}
-                  onRemove={handleRemove}
-                />
-              ))}
+            <ul className="-mx-1.5 flex flex-col">
+              <AnimatePresence initial={false}>
+                {subTasks.subTasks.map((subTask) => (
+                  <motion.div
+                    key={subTask.id}
+                    layout
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    exit={{ opacity: 0, height: 0 }}
+                    transition={{ duration: 0.16, ease: [0.4, 0, 0.2, 1] }}
+                  >
+                    <SubTaskRow
+                      subTask={subTask}
+                      isPending={subTasks.pendingId === subTask.id}
+                      onToggle={handleToggle}
+                      onRename={handleRename}
+                      onRemove={handleRemove}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </ul>
           )}
 
-          <form className="subtasks__add" onSubmit={handleAdd}>
-            <input
-              className="field__input"
+          <form className="flex items-center gap-1.5" onSubmit={handleAdd}>
+            <Input
               type="text"
               value={draft}
               placeholder="Add a subtask"
               maxLength={LIMITS.subTaskTitleMax}
               disabled={subTasks.isCreating}
+              aria-label="New subtask title"
+              className="h-8 text-sm"
               onChange={(event) => {
                 setDraft(event.target.value)
               }}
             />
-            <button
+            <Button
               type="submit"
-              className="m-oauth m-sm"
+              variant="outline"
+              size="icon-sm"
               disabled={subTasks.isCreating || draft.trim().length === 0}
+              aria-label="Add subtask"
             >
-              {subTasks.isCreating && <Spinner label="Adding" size="sm" />}
-              Add
-            </button>
+              {subTasks.isCreating ? <Spinner label="Adding" size="sm" /> : <PlusIcon />}
+            </Button>
           </form>
-          <p className="field__hint">Up to {LIMITS.subTaskTitleMax} characters.</p>
         </>
       )}
     </section>

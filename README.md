@@ -230,7 +230,7 @@ The integration suite includes an adversarial one: two users register, and one t
 
 ## The frontend
 
-`ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three task boards with sorting and filtering, a task detail panel with subtask management, category CRUD, and account settings. It ships a single light theme, *warm paper*.
+`ui/` is a React 19 + Vite + TypeScript client covering the whole API: the three task boards with sorting and filtering, a task detail panel with subtask management, category CRUD, and account settings. Tasks move between boards by dragging or from the keyboard. It is built on Tailwind CSS v4 and shadcn/ui components over Radix primitives, with light and dark themes.
 
 The client calls the API cross-origin rather than through a dev-server proxy, so the CORS contract is exercised in development exactly as in production. The API allows browser requests from the origins in `CORS_ALLOWED_ORIGINS`, which defaults to the Vite dev server at `http://localhost:5173`; the deployed client's origin is set there too. `setAllowedOrigins` matches exactly, so a trailing slash is enough to break every request.
 
@@ -243,7 +243,6 @@ See [ui/README.md](ui/README.md) for commands and design notes.
 
 ## Roadmap
 
-- Drag-and-drop between the boards
 - Reassigning a task's category from the category screen
 
 ## License

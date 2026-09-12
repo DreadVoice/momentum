@@ -1,8 +1,19 @@
-import { useCallback, useState } from 'react'
-import { Modal } from './Modal'
-import { Spinner } from './Spinner'
+import { useCallback, useId, useState } from 'react'
 import { toErrorMessage } from '../../lib/ApiError'
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '../ui/alert-dialog'
+import { Button } from '../ui/button'
+import { Input } from '../ui/input'
+import { Label } from '../ui/label'
 import { Alert } from './Alert'
+import { Spinner } from './Spinner'
 
 interface ConfirmDialogProps {
   readonly title: string
@@ -13,7 +24,10 @@ interface ConfirmDialogProps {
   readonly onClose: () => void
 }
 
-
+/**
+ * Destructive confirmation, always rendered open: the caller mounts it only
+ * when a confirmation is pending and unmounts it on close.
+ */
 export function ConfirmDialog({
   title,
   body,
@@ -25,6 +39,7 @@ export function ConfirmDialog({
   const [typed, setTyped] = useState('')
   const [isWorking, setIsWorking] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const phraseId = useId()
 
   const requiresPhrase = confirmationPhrase !== undefined
   const canConfirm = !isWorking && (!requiresPhrase || typed === confirmationPhrase)
@@ -44,18 +59,31 @@ export function ConfirmDialog({
   }, [onConfirm, onClose])
 
   return (
-    <Modal title={title} onClose={onClose}>
-      <div className="confirm">
+    <AlertDialog
+      open
+      onOpenChange={(open) => {
+        // Radix reports Escape and overlay dismissal here; ignore both mid-flight.
+        if (!open && !isWorking) {
+          onClose()
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          <AlertDialogDescription>{body}</AlertDialogDescription>
+        </AlertDialogHeader>
+
         {error !== null && <Alert tone="error" message={error} />}
-        <p className="confirm__body">{body}</p>
 
         {requiresPhrase && (
-          <label className="field">
-            <span className="field__label">
-              Type &ldquo;{confirmationPhrase}&rdquo; to confirm
-            </span>
-            <input
-              className="field__input"
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={phraseId}>
+              Type <span className="font-mono font-semibold">{confirmationPhrase}</span> to
+              confirm
+            </Label>
+            <Input
+              id={phraseId}
               type="text"
               value={typed}
               disabled={isWorking}
@@ -64,24 +92,17 @@ export function ConfirmDialog({
                 setTyped(event.target.value)
               }}
             />
-          </label>
+          </div>
         )}
 
-        <div className="confirm__actions">
-          <button type="button" className="m-oauth" onClick={onClose} disabled={isWorking}>
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="m-primary m-primary--accent"
-            onClick={handleConfirm}
-            disabled={!canConfirm}
-          >
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={isWorking}>Cancel</AlertDialogCancel>
+          <Button type="button" variant="destructive" onClick={handleConfirm} disabled={!canConfirm}>
             {isWorking && <Spinner label="Working" size="sm" />}
             {confirmLabel}
-          </button>
-        </div>
-      </div>
-    </Modal>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   )
 }
