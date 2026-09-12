@@ -1,6 +1,7 @@
 # Momentum UI
 
-Web client for the Momentum API, built with React 19, TypeScript and Vite.
+Web client for the Momentum API, built with React 19, TypeScript and Vite,
+styled with Tailwind CSS v4 and shadcn/ui components over Radix primitives.
 
 ## Commands
 
@@ -29,26 +30,44 @@ production. The dev server origin must appear in the API's
 
 - **Board**: Pending / In Progress / Completed columns, sorting and filtering
   by category, board and priority, account-wide counters including overdue.
+- **Drag-and-drop**: move a task between boards by dragging its handle, or from
+  the keyboard — focus the handle, <kbd>Space</kbd> to lift, arrow keys to move
+  one column per press, <kbd>Space</kbd> to drop, <kbd>Esc</kbd> to cancel. The
+  card menu offers the same moves as ordinary menu items.
 - **Task detail**: a split panel with full metadata and subtask management
   (add, rename, toggle, delete).
 - **Task editing**: create, edit, move between boards and delete.
 - **Categories**: create, rename and delete.
 - **Account**: profile, password change and account deletion.
+- **Themes**: light, dark, or follow the system, remembered across reloads.
 
 ## Design system
 
-A single theme, *warm paper*, declared as tokens on `[data-theme='light']`.
-No dark or black mode is implemented.
+A cool neutral product palette built on Tailwind CSS v4, with light and dark
+themes. Tokens are CSS custom properties in `src/index.css`: the light set on
+`:root`, the dark set under `.dark`, both projected into Tailwind through
+`@theme inline`.
 
-- **Typography**: Instrument Serif for display and italic accents, Schibsted
-  Grotesk for UI and body, JetBrains Mono for labels, timestamps and meta.
-- **Accent**: one warm vermilion, `oklch(58% 0.17 38)`.
-- **Chrome**: a faux window bar (three dots plus the app name) frames the app;
-  1px hairline borders, 14px radius, one soft diffused shadow, no gradients.
-- **Layout**: grid-based split panels with hairline dividers.
-- `.m-primary` is the primary button; `.m-oauth` is the neutral secondary
-  treatment, keeping the design system's class name even though this API has no
-  OAuth provider.
+- **Colour**: near-achromatic greys with a slight blue cast. Semantic hues are
+  kept distinct so no two meanings share a colour — `brand` (indigo) for focus
+  and selection, `destructive` (red) for deletion and overdue, `warning`
+  (amber) for high priority, `success` (green) for completion. `primary` is
+  near-black in light and near-white in dark, which keeps dense UI calm.
+- **Typography**: Inter for everything, with `tabular-nums` (the `.tabular`
+  utility) on counters, dates and timestamps so they do not jitter as they
+  update.
+- **Components**: shadcn/ui components live in `src/components/ui/` and are
+  owned by this repository — edit them directly. They wrap Radix primitives,
+  which supply focus management, keyboard navigation and ARIA for the dialog,
+  alert dialog, dropdown menu, select, checkbox, tooltip and label.
+- **Theming**: `ThemeProvider` owns the light/dark/system choice and persists
+  it to `localStorage`. An inline script in `index.html` applies the stored
+  choice before first paint, so a dark-mode reload never flashes white.
+- **Motion**: Motion (`motion/react`) drives list and layout transitions;
+  everything else is a CSS transition. A `prefers-reduced-motion` block in
+  `src/index.css` reduces all of it to near-zero.
+- **Responsive**: single column on phones, two from `md`, three from `xl`; the
+  detail panel drops below the board rather than beside it under `xl`.
 
 ## Notes
 
@@ -68,5 +87,4 @@ No dark or black mode is implemented.
 
 ## Not implemented
 
-Drag-and-drop between boards, and reassigning a task's category from the
-category screen.
+Reassigning a task's category from the category screen.

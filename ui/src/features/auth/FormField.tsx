@@ -1,13 +1,18 @@
 import { useId, type ChangeEvent } from 'react'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
 
 interface FormFieldProps {
   readonly label: string
-  readonly type: 'text' | 'email' | 'password'
+  readonly type: 'text' | 'email' | 'password' | 'url'
   readonly value: string
   readonly error?: string | undefined
   readonly autoComplete: string
   readonly disabled: boolean
   readonly hint?: string | undefined
+  readonly placeholder?: string | undefined
+  readonly maxLength?: number | undefined
+  readonly optional?: boolean
   readonly onChange: (value: string) => void
 }
 
@@ -19,6 +24,9 @@ export function FormField({
   autoComplete,
   disabled,
   hint,
+  placeholder,
+  maxLength,
+  optional = false,
   onChange,
 }: FormFieldProps) {
   const inputId = useId()
@@ -31,17 +39,19 @@ export function FormField({
     .join(' ')
 
   return (
-    <div className="field">
-      <label className="field__label" htmlFor={inputId}>
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={inputId}>
         {label}
-      </label>
-      <input
+        {optional && <span className="text-xs font-normal text-muted-foreground">optional</span>}
+      </Label>
+      <Input
         id={inputId}
-        className={hasError ? 'field__input field__input--invalid' : 'field__input'}
         type={type}
         value={value}
         autoComplete={autoComplete}
         disabled={disabled}
+        placeholder={placeholder}
+        maxLength={maxLength}
         aria-invalid={hasError}
         aria-describedby={describedBy.length > 0 ? describedBy : undefined}
         onChange={(event: ChangeEvent<HTMLInputElement>) => {
@@ -49,12 +59,12 @@ export function FormField({
         }}
       />
       {hint !== undefined && !hasError && (
-        <p id={hintId} className="field__hint">
+        <p id={hintId} className="text-xs text-muted-foreground">
           {hint}
         </p>
       )}
       {hasError && (
-        <p id={errorId} className="field__error">
+        <p id={errorId} className="text-xs text-destructive">
           {error}
         </p>
       )}

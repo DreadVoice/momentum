@@ -1,8 +1,27 @@
 import { useCallback, useId, useState, type FormEvent } from 'react'
 import { Alert } from '../../components/common/Alert'
-import { Modal } from '../../components/common/Modal'
 import { Spinner } from '../../components/common/Spinner'
+import { Button } from '../../components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
+import { Textarea } from '../../components/ui/textarea'
 import { isApiError, toErrorMessage } from '../../lib/ApiError'
+import { cn } from '../../lib/utils'
 import {
   TASK_PRIORITIES,
   TASK_STATUSES,
@@ -17,6 +36,9 @@ import { PRIORITY_LABELS, STATUS_LABELS } from './boardConfig'
 
 const MAX_TITLE_LENGTH = 255
 const MAX_DESCRIPTION_LENGTH = 1000
+
+/** Radix Select has no empty-string value, so "no category" needs a sentinel. */
+const NO_CATEGORY = '__none__'
 
 interface TaskFormModalProps {
   readonly task: TaskResponse | null
@@ -45,11 +67,10 @@ function initialValues(
       description: '',
       priority: TaskPriority.MEDIUM,
       status: TaskStatus.PENDING,
-      categoryId: '',
+      categoryId: NO_CATEGORY,
       dueDate: '',
     }
   }
-
 
   const matched = categories.find((category) => category.name === task.categoryName)
 
@@ -58,7 +79,7 @@ function initialValues(
     description: task.description ?? '',
     priority: task.priority,
     status: task.status,
-    categoryId: matched === undefined ? '' : String(matched.id),
+    categoryId: matched === undefined ? NO_CATEGORY : String(matched.id),
     dueDate: task.dueDate ?? '',
   }
 }
@@ -77,10 +98,12 @@ export function TaskFormModal({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fieldId = useId()
 
-  const setText = useCallback((field: 'title' | 'description' | 'categoryId' | 'dueDate', value: string) => {
-    setValues((current) => ({ ...current, [field]: value }))
-  }, [])
-
+  const setText = useCallback(
+    (field: 'title' | 'description' | 'categoryId' | 'dueDate', value: string) => {
+      setValues((current) => ({ ...current, [field]: value }))
+    },
+    [],
+  )
 
   const setPriority = useCallback((value: string) => {
     const parsed = TASK_PRIORITIES.find((candidate) => candidate === value)
@@ -116,7 +139,7 @@ export function TaskFormModal({
         title,
         description: description.length > 0 ? description : null,
         priority: values.priority,
-        categoryId: values.categoryId === '' ? null : Number(values.categoryId),
+        categoryId: values.categoryId === NO_CATEGORY ? null : Number(values.categoryId),
         dueDate: values.dueDate === '' ? null : values.dueDate,
       }
 
@@ -142,149 +165,170 @@ export function TaskFormModal({
   )
 
   return (
-    <Modal title={isEditing ? 'Edit task' : 'New task'} onClose={onClose}>
-      <form className="task-form" onSubmit={handleSubmit} noValidate>
-        {formError !== null && <Alert tone="error" message={formError} />}
+    <Dialog
+      open
+      onOpenChange={(open) => {
+        if (!open && !isSubmitting) {
+          onClose()
+        }
+      }}
+    >
+      <DialogContent className="sm:max-w-xl">
+        <DialogHeader>
+          <DialogTitle>{isEditing ? 'Edit task' : 'New task'}</DialogTitle>
+          <DialogDescription>
+            {isEditing
+              ? 'Update the details of this task.'
+              : 'New tasks always start in the Pending board.'}
+          </DialogDescription>
+        </DialogHeader>
 
-        <div className="field">
-          <label className="field__label" htmlFor={fieldId + '-title'}>
-            Title
-          </label>
-          <input
-            id={fieldId + '-title'}
-            className={titleError !== null ? 'field__input field__input--invalid' : 'field__input'}
-            type="text"
-            value={values.title}
-            maxLength={MAX_TITLE_LENGTH}
-            disabled={isSubmitting}
-            aria-invalid={titleError !== null}
-            onChange={(event) => {
-              setText('title', event.target.value)
-            }}
-          />
-          {titleError !== null && <p className="field__error">{titleError}</p>}
-        </div>
+        <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>
+          {formError !== null && <Alert tone="error" message={formError} />}
 
-        <div className="field">
-          <label className="field__label" htmlFor={fieldId + '-description'}>
-            Description <span className="field__optional">optional</span>
-          </label>
-          <textarea
-            id={fieldId + '-description'}
-            className="field__input field__input--textarea"
-            value={values.description}
-            rows={3}
-            maxLength={MAX_DESCRIPTION_LENGTH}
-            disabled={isSubmitting}
-            onChange={(event) => {
-              setText('description', event.target.value)
-            }}
-          />
-          <p className="field__hint">
-            {values.description.length} / {MAX_DESCRIPTION_LENGTH}
-          </p>
-        </div>
-
-        <div className="task-form__row">
-          <div className="field">
-            <label className="field__label" htmlFor={fieldId + '-priority'}>
-              Priority
-            </label>
-            <select
-              id={fieldId + '-priority'}
-              className="field__input"
-              value={values.priority}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${fieldId}-title`}>Title</Label>
+            <Input
+              id={`${fieldId}-title`}
+              type="text"
+              value={values.title}
+              maxLength={MAX_TITLE_LENGTH}
               disabled={isSubmitting}
+              aria-invalid={titleError !== null}
+              aria-describedby={titleError !== null ? `${fieldId}-title-error` : undefined}
+              autoFocus
               onChange={(event) => {
-                setPriority(event.target.value)
-              }}
-            >
-              {TASK_PRIORITIES.map((priority) => (
-                <option key={priority} value={priority}>
-                  {PRIORITY_LABELS[priority]}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {isEditing && (
-            <div className="field">
-              <label className="field__label" htmlFor={fieldId + '-status'}>
-                Status
-              </label>
-              <select
-                id={fieldId + '-status'}
-                className="field__input"
-                value={values.status}
-                disabled={isSubmitting}
-                onChange={(event) => {
-                  setStatus(event.target.value)
-                }}
-              >
-                {TASK_STATUSES.map((status) => (
-                  <option key={status} value={status}>
-                    {STATUS_LABELS[status]}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
-
-        <div className="task-form__row">
-          <div className="field">
-            <label className="field__label" htmlFor={fieldId + '-category'}>
-              Category <span className="field__optional">optional</span>
-            </label>
-            <select
-              id={fieldId + '-category'}
-              className="field__input"
-              value={values.categoryId}
-              disabled={isSubmitting || categories.length === 0}
-              onChange={(event) => {
-                setText('categoryId', event.target.value)
-              }}
-            >
-              <option value="">No category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={String(category.id)}>
-                  {category.name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label className="field__label" htmlFor={fieldId + '-due'}>
-              Due date <span className="field__optional">optional</span>
-            </label>
-            <input
-              id={fieldId + '-due'}
-              className="field__input"
-              type="date"
-              value={values.dueDate}
-              disabled={isSubmitting}
-              onChange={(event) => {
-                setText('dueDate', event.target.value)
+                setText('title', event.target.value)
               }}
             />
+            {titleError !== null && (
+              <p id={`${fieldId}-title-error`} className="text-xs text-destructive">
+                {titleError}
+              </p>
+            )}
           </div>
-        </div>
 
-        {!isEditing && (
-          <p className="task-form__note">New tasks always start in the Pending board.</p>
-        )}
+          <div className="flex flex-col gap-2">
+            <Label htmlFor={`${fieldId}-description`}>
+              Description
+              <span className="text-xs font-normal text-muted-foreground">optional</span>
+            </Label>
+            <Textarea
+              id={`${fieldId}-description`}
+              value={values.description}
+              rows={3}
+              maxLength={MAX_DESCRIPTION_LENGTH}
+              disabled={isSubmitting}
+              className="max-h-52"
+              onChange={(event) => {
+                setText('description', event.target.value)
+              }}
+            />
+            <p
+              className={cn(
+                'tabular self-end text-xs text-muted-foreground',
+                values.description.length > MAX_DESCRIPTION_LENGTH * 0.9 && 'text-warning',
+              )}
+            >
+              {values.description.length} / {MAX_DESCRIPTION_LENGTH}
+            </p>
+          </div>
 
-        <div className="task-form__actions">
-          <button type="button" className="m-oauth" onClick={onClose} disabled={isSubmitting}>
-            Cancel
-          </button>
-          <button type="submit" className="m-primary" disabled={isSubmitting}>
-            {isSubmitting && <Spinner label="Saving" size="sm" />}
-            {isEditing ? 'Save changes' : 'Create task'}
-          </button>
-        </div>
-      </form>
-    </Modal>
+          <div className={cn('grid gap-4', isEditing && 'sm:grid-cols-2')}>
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={`${fieldId}-priority`}>Priority</Label>
+              <Select
+                value={values.priority}
+                disabled={isSubmitting}
+                onValueChange={setPriority}
+              >
+                <SelectTrigger id={`${fieldId}-priority`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {TASK_PRIORITIES.map((priority) => (
+                    <SelectItem key={priority} value={priority}>
+                      {PRIORITY_LABELS[priority]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {isEditing && (
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={`${fieldId}-status`}>Board</Label>
+                <Select value={values.status} disabled={isSubmitting} onValueChange={setStatus}>
+                  <SelectTrigger id={`${fieldId}-status`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TASK_STATUSES.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        {STATUS_LABELS[status]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={`${fieldId}-category`}>
+                Category
+                <span className="text-xs font-normal text-muted-foreground">optional</span>
+              </Label>
+              <Select
+                value={values.categoryId}
+                disabled={isSubmitting || categories.length === 0}
+                onValueChange={(value) => {
+                  setText('categoryId', value)
+                }}
+              >
+                <SelectTrigger id={`${fieldId}-category`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={NO_CATEGORY}>No category</SelectItem>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={String(category.id)}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Label htmlFor={`${fieldId}-due`}>
+                Due date
+                <span className="text-xs font-normal text-muted-foreground">optional</span>
+              </Label>
+              <Input
+                id={`${fieldId}-due`}
+                type="date"
+                value={values.dueDate}
+                disabled={isSubmitting}
+                onChange={(event) => {
+                  setText('dueDate', event.target.value)
+                }}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting && <Spinner label="Saving" size="sm" />}
+              {isEditing ? 'Save changes' : 'Create task'}
+            </Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
   )
 }

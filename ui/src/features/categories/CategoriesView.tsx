@@ -1,7 +1,16 @@
-import { useCallback, useState, type FormEvent } from 'react'
+import { PencilIcon, PlusIcon, TagsIcon, Trash2Icon } from 'lucide-react'
+import { AnimatePresence, motion } from 'motion/react'
+import { useCallback, useId, useState, type FormEvent } from 'react'
 import { Alert } from '../../components/common/Alert'
 import { ConfirmDialog } from '../../components/common/ConfirmDialog'
 import { Spinner } from '../../components/common/Spinner'
+import { Button } from '../../components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { Skeleton } from '../../components/ui/skeleton'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip'
+import { cn } from '../../lib/utils'
 import { LIMITS, type CategoryResponse } from '../../types/api'
 import { useCategoryManager } from './useCategoryManager'
 
@@ -11,7 +20,6 @@ interface CategoryRowProps {
   readonly onRename: (categoryId: number, name: string) => void
   readonly onRequestDelete: (category: CategoryResponse) => void
 }
-
 
 function CategoryRow({ category, isPending, onRename, onRequestDelete }: CategoryRowProps) {
   const [isEditing, setIsEditing] = useState(false)
@@ -31,14 +39,20 @@ function CategoryRow({ category, isPending, onRename, onRequestDelete }: Categor
   }, [draft, category, onRename])
 
   return (
-    <li className={isPending ? 'category-row category-row--pending' : 'category-row'}>
+    <li
+      className={cn(
+        'group/row flex items-center gap-3 rounded-lg border bg-card px-3 py-2.5 transition-colors hover:border-foreground/20',
+        isPending && 'opacity-55',
+      )}
+    >
       {isEditing ? (
-        <input
-          className="field__input"
+        <Input
           type="text"
           value={draft}
           maxLength={LIMITS.categoryNameMax}
           autoFocus
+          aria-label={`Rename ${category.name}`}
+          className="h-8"
           onChange={(event) => {
             setDraft(event.target.value)
           }}
@@ -56,41 +70,65 @@ function CategoryRow({ category, isPending, onRename, onRequestDelete }: Categor
           }}
         />
       ) : (
-        <div className="category-row__label">
-          <span className="category-row__name">{category.name}</span>
-          <span className="meta">
+        <div className="flex min-w-0 flex-1 items-center gap-2.5">
+          <span className="truncate text-sm font-medium">{category.name}</span>
+          <span className="tabular shrink-0 rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
             {category.taskCount} {category.taskCount === 1 ? 'task' : 'tasks'}
           </span>
         </div>
       )}
 
-      <div className="category-row__actions">
-        {isPending && <Spinner label="Updating category" size="sm" />}
-        <button
-          type="button"
-          className="m-oauth m-sm"
+      <div className="flex shrink-0 items-center gap-0.5">
+        {isPending && (
+          <Spinner label="Updating category" size="sm" className="text-muted-foreground" />
+        )}
+        <Button
+          variant="ghost"
+          size="icon-sm"
           disabled={isPending || isEditing}
+          aria-label={`Rename ${category.name}`}
+          className="text-muted-foreground opacity-0 group-hover/row:opacity-100 focus-visible:opacity-100"
           onClick={() => {
             setIsEditing(true)
           }}
         >
-          Rename
-        </button>
-        <button
-          type="button"
-          className="m-oauth m-sm m-danger"
-          disabled={isPending || inUse}
-          title={
-            inUse
-              ? 'Move or delete this category’s tasks before deleting it.'
-              : undefined
-          }
-          onClick={() => {
-            onRequestDelete(category)
-          }}
-        >
-          Delete
-        </button>
+          <PencilIcon className="size-3.5" />
+        </Button>
+
+        {inUse ? (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {/* A disabled button emits no pointer events, so the tooltip needs a wrapper. */}
+              <span className="inline-flex opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  disabled
+                  aria-label={`Delete ${category.name}`}
+                  className="text-muted-foreground"
+                >
+                  <Trash2Icon className="size-3.5" />
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              Move or delete this category&rsquo;s tasks before deleting it.
+            </TooltipContent>
+          </Tooltip>
+        ) : (
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            disabled={isPending}
+            aria-label={`Delete ${category.name}`}
+            className="text-muted-foreground opacity-0 group-hover/row:opacity-100 hover:text-destructive focus-visible:opacity-100"
+            onClick={() => {
+              onRequestDelete(category)
+            }}
+          >
+            <Trash2Icon className="size-3.5" />
+          </Button>
+        )}
       </div>
     </li>
   )
@@ -100,6 +138,7 @@ export function CategoriesView() {
   const manager = useCategoryManager()
   const [draft, setDraft] = useState('')
   const [pendingDelete, setPendingDelete] = useState<CategoryResponse | null>(null)
+  const newCategoryId = useId()
 
   const handleCreate = useCallback(
     (event: FormEvent<HTMLFormElement>) => {
@@ -133,47 +172,57 @@ export function CategoriesView() {
   }, [])
 
   const hasCategories = manager.categories.length > 0
-  const anyInUse = manager.categories.some((category) => category.taskCount > 0)
 
   return (
-    <div className="panel-split">
-      <section className="panel-split__aside">
-        <h2 className="panel-split__title">Categories</h2>
-        <p className="panel-split__lede display-accent">
-          Group tasks by the kind of work they represent.
-        </p>
-        <p className="meta panel-split__note">
-          A category can only be deleted once nothing references it. Move its tasks
-          elsewhere first.
-        </p>
+    <div className="mx-auto grid w-full max-w-5xl gap-6 px-4 py-6 sm:px-6 lg:grid-cols-[minmax(0,20rem)_minmax(0,1fr)] lg:items-start">
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-1.5">
+          <h1 className="text-xl font-semibold tracking-tight">Categories</h1>
+          <p className="text-sm text-muted-foreground">
+            Group tasks by the kind of work they represent.
+          </p>
+        </div>
 
-        <form className="stack" onSubmit={handleCreate}>
-          <label className="field">
-            <span className="field__label">New category</span>
-            <input
-              className="field__input"
-              type="text"
-              value={draft}
-              maxLength={LIMITS.categoryNameMax}
-              placeholder="Design, Research, Admin…"
-              disabled={manager.isCreating}
-              onChange={(event) => {
-                setDraft(event.target.value)
-              }}
-            />
-          </label>
-          <button
-            type="submit"
-            className="m-primary"
-            disabled={manager.isCreating || draft.trim().length === 0}
-          >
-            {manager.isCreating && <Spinner label="Creating" size="sm" />}
-            Create category
-          </button>
-        </form>
-      </section>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-sm">New category</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <form className="flex flex-col gap-3" onSubmit={handleCreate}>
+              <div className="flex flex-col gap-2">
+                <Label htmlFor={newCategoryId} className="sr-only">
+                  Category name
+                </Label>
+                <Input
+                  id={newCategoryId}
+                  type="text"
+                  value={draft}
+                  maxLength={LIMITS.categoryNameMax}
+                  placeholder="Design, Research, Admin…"
+                  disabled={manager.isCreating}
+                  onChange={(event) => {
+                    setDraft(event.target.value)
+                  }}
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={manager.isCreating || draft.trim().length === 0}
+              >
+                {manager.isCreating ? <Spinner label="Creating" size="sm" /> : <PlusIcon />}
+                Create category
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
 
-      <section className="panel-split__main">
+        <p className="text-xs text-muted-foreground">
+          A category can only be deleted once nothing references it. Move its tasks elsewhere
+          first.
+        </p>
+      </div>
+
+      <div className="flex flex-col gap-3">
         {manager.mutationError !== null && (
           <Alert
             tone="error"
@@ -183,9 +232,11 @@ export function CategoriesView() {
         )}
 
         {manager.status === 'loading' && (
-          <p className="state-line">
-            <Spinner label="Loading categories" size="sm" /> Loading categories…
-          </p>
+          <div className="flex flex-col gap-2" aria-hidden="true">
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+            <Skeleton className="h-12 w-full rounded-lg" />
+          </div>
         )}
 
         {manager.status === 'error' && manager.error !== null && (
@@ -193,35 +244,41 @@ export function CategoriesView() {
         )}
 
         {manager.status === 'ready' && !hasCategories && (
-          <div className="zero-state">
-            <h3>No categories yet</h3>
-            <p className="display-accent">
+          <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed px-6 py-16 text-center">
+            <span className="flex size-11 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <TagsIcon className="size-5" aria-hidden="true" />
+            </span>
+            <h2 className="text-base">No categories yet</h2>
+            <p className="max-w-xs text-sm text-muted-foreground">
               Create one on the left to start grouping your tasks.
             </p>
           </div>
         )}
 
         {manager.status === 'ready' && hasCategories && (
-          <>
-            <ul className="category-list">
+          <ul className="flex flex-col gap-2">
+            <AnimatePresence initial={false}>
               {manager.categories.map((category) => (
-                <CategoryRow
+                <motion.div
                   key={category.id}
-                  category={category}
-                  isPending={manager.pendingId === category.id}
-                  onRename={handleRename}
-                  onRequestDelete={setPendingDelete}
-                />
+                  layout
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.18, ease: [0.4, 0, 0.2, 1] }}
+                >
+                  <CategoryRow
+                    category={category}
+                    isPending={manager.pendingId === category.id}
+                    onRename={handleRename}
+                    onRequestDelete={setPendingDelete}
+                  />
+                </motion.div>
               ))}
-            </ul>
-            {anyInUse && (
-              <p className="meta">
-                Categories in use cannot be deleted while tasks still reference them.
-              </p>
-            )}
-          </>
+            </AnimatePresence>
+          </ul>
         )}
-      </section>
+      </div>
 
       {pendingDelete !== null && (
         <ConfirmDialog
