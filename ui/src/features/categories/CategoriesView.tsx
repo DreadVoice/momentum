@@ -98,7 +98,6 @@ function CategoryRow({ category, isPending, onRename, onRequestDelete }: Categor
         {inUse ? (
           <Tooltip>
             <TooltipTrigger asChild>
-              {/* A disabled button emits no pointer events, so the tooltip needs a wrapper. */}
               <span className="inline-flex opacity-0 transition-opacity group-hover/row:opacity-100 focus-within:opacity-100">
                 <Button
                   variant="ghost"

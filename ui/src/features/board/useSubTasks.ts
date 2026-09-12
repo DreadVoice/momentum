@@ -130,8 +130,6 @@ export function useSubTasks(taskId: number): UseSubTasksResult {
 
   const toggle = useCallback(
     (subTaskId: number): Promise<void> =>
-      // The dedicated toggle endpoint flips server-side, so a stale local
-      // `completed` value can never be written back.
       runOn(subTaskId, async () => {
         const updated = await subTasksApi.toggle(subTaskId)
         if (mountedRef.current) {

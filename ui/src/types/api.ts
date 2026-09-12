@@ -1,8 +1,3 @@
-/**
- * Hand-written mirror of the Spring Boot DTOs in `app/src/main/java/com/momentum/app/dto`.
- * Any change to a backend record must be reflected here.
- */
-
 export const TaskStatus = {
   PENDING: 'PENDING',
   IN_PROGRESS: 'IN_PROGRESS',
@@ -31,7 +26,6 @@ export const TASK_PRIORITIES: readonly TaskPriority[] = [
   TaskPriority.HIGH,
 ]
 
-/** Properties the backend whitelists in TaskController#validateSort. */
 export const SORTABLE_TASK_PROPERTIES = [
   'createdAt',
   'dueDate',
@@ -44,7 +38,6 @@ export type SortableTaskProperty = (typeof SORTABLE_TASK_PROPERTIES)[number]
 
 export type SortDirection = 'asc' | 'desc'
 
-/** `com.momentum.app.exception.ErrorResponse` */
 export interface ApiErrorBody {
   readonly status: number
   readonly error: string
@@ -53,7 +46,6 @@ export interface ApiErrorBody {
   readonly fieldErrors: Readonly<Record<string, string>> | null
 }
 
-/** `com.momentum.app.dto.common.PageResponse` */
 export interface PageResponse<T> {
   readonly content: readonly T[]
   readonly page: number
@@ -62,7 +54,6 @@ export interface PageResponse<T> {
   readonly totalPages: number
 }
 
-/** `com.momentum.app.dto.auth.AuthResponse` */
 export interface AuthResponse {
   readonly accessToken: string
   readonly refreshToken: string
@@ -84,24 +75,20 @@ export interface RefreshTokenRequest {
   readonly refreshToken: string
 }
 
-/** `com.momentum.app.dto.user.UserResponse` */
 export interface UserResponse {
   readonly id: number
   readonly username: string
   readonly email: string
   readonly profilePhoto: string | null
-  /** ISO-8601 local date-time, e.g. `2026-08-20T09:41:00`. */
   readonly createdAt: string
 }
 
-/** `com.momentum.app.dto.subtask.SubTaskResponse` */
 export interface SubTaskResponse {
   readonly id: number
   readonly title: string
   readonly completed: boolean
 }
 
-/** `com.momentum.app.dto.task.TaskResponse` */
 export interface TaskResponse {
   readonly id: number
   readonly title: string
@@ -109,7 +96,6 @@ export interface TaskResponse {
   readonly priority: TaskPriority
   readonly status: TaskStatus
   readonly categoryName: string | null
-  /** ISO-8601 local date, e.g. `2026-08-20`. */
   readonly dueDate: string | null
   readonly createdAt: string
   readonly updatedAt: string
@@ -126,10 +112,6 @@ export interface TaskCreateRequest {
   readonly dueDate: string | null
 }
 
-/**
- * Full replacement (PUT). Unlike PATCH, null values are applied, so this is the
- * only way to clear a due date or detach a category.
- */
 export interface TaskUpdateRequest {
   readonly title: string
   readonly description: string | null
@@ -139,7 +121,6 @@ export interface TaskUpdateRequest {
   readonly dueDate: string | null
 }
 
-/** Partial update (PATCH). The backend ignores every null field. */
 export interface TaskPatchRequest {
   readonly title?: string
   readonly description?: string
@@ -149,7 +130,6 @@ export interface TaskPatchRequest {
   readonly dueDate?: string
 }
 
-/** `com.momentum.app.dto.category.CategoryResponse` */
 export interface CategoryCreateRequest {
   readonly name: string
 }
@@ -164,7 +144,6 @@ export interface CategoryResponse {
   readonly taskCount: number
 }
 
-/** `com.momentum.app.dto.task.TaskStatsResponse` */
 export interface TaskStatsResponse {
   readonly countsByStatus: Readonly<Record<TaskStatus, number>>
   readonly total: number
@@ -182,7 +161,6 @@ export interface SubTaskCreateRequest {
   readonly title: string
 }
 
-/** Full replacement (PUT); `completed` is primitive on the backend record. */
 export interface SubTaskUpdateRequest {
   readonly title: string
   readonly completed: boolean
@@ -193,7 +171,6 @@ export interface SubTaskPatchRequest {
   readonly completed?: boolean
 }
 
-/** `profilePhoto` is validated with @URL, so an empty string is not accepted. */
 export interface UserUpdateRequest {
   readonly username: string
   readonly email: string
@@ -209,7 +186,6 @@ export interface DeleteAccountRequest {
   readonly password: string
 }
 
-/** Constraints mirrored from the Jakarta annotations on the backend records. */
 export const LIMITS = {
   usernameMin: 3,
   usernameMax: 50,

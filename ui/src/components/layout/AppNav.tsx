@@ -119,7 +119,6 @@ export function AppNav({ username, view, onViewChange, onLogout }: AppNavProps) 
                 variant="destructive"
                 disabled={isLoggingOut}
                 onSelect={(event) => {
-                  // Keep the menu mounted so the pending state stays visible.
                   event.preventDefault()
                   handleLogout()
                 }}

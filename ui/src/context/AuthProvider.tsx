@@ -46,7 +46,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [endSession])
 
-
   useEffect(() => {
     if (tokenStorage.read() === null) {
       setState({ kind: 'anonymous', sessionExpired: false })
@@ -138,7 +137,6 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = useCallback(async (): Promise<void> => {
     const tokens = tokenStorage.read()
-
 
     if (tokens !== null) {
       try {

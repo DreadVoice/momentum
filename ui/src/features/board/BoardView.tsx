@@ -65,8 +65,6 @@ export function BoardView() {
   const board = useTaskBoard(query)
   const { summary } = useTaskStats(statsRevision)
 
-  // A small activation distance keeps a click on the drag handle from being
-  // swallowed as a drag, and touch gets a hold delay so the page still scrolls.
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: boardKeyboardCoordinates }),
@@ -138,8 +136,6 @@ export function BoardView() {
       const nextStatus = over.id
       const currentStatus = active.data.current?.status
 
-      // Dropping a card back on its own column is a no-op: the board has no
-      // client-side ordering to persist, only the status the column stands for.
       if (!isTaskStatus(nextStatus) || nextStatus === currentStatus) {
         return
       }
@@ -195,7 +191,6 @@ export function BoardView() {
     [query.status],
   )
 
-  /** Spoken feedback for the keyboard drag path. */
   const announcements = useMemo<Announcements>(
     () => ({
       onDragStart: ({ active }) =>

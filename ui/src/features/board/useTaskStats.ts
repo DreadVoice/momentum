@@ -20,7 +20,6 @@ const EMPTY_COUNTS: Readonly<Record<TaskStatus, number>> = {
   COMPLETED: 0,
 }
 
-
 export function useTaskStats(revision: number): UseTaskStatsResult {
   const [summary, setSummary] = useState<TaskStatsSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)

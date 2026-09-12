@@ -3,7 +3,6 @@ import { TASK_STATUSES } from '../../types/api'
 
 const CARDS_PER_COLUMN = [3, 2, 2] as const
 
-/** Mirrors the real board's grid so the switch to loaded content does not jump. */
 export function BoardSkeleton() {
   return (
     <div

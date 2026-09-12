@@ -19,10 +19,6 @@ interface TaskCardProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-/**
- * The card body, shared by the interactive board card and the drag overlay.
- * Kept presentational so the overlay never re-registers drag listeners.
- */
 export function TaskCardBody({
   task,
   isPending,

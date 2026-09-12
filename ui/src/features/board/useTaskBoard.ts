@@ -44,13 +44,6 @@ function emptyBuckets(): Record<TaskStatus, TaskResponse[]> {
   }
 }
 
-/**
- * Owns every server interaction for the board: the paged fetch driven by the
- * nav-bar query, and the mutations reachable from a card.
- *
- * Pages accumulate into a single list which is then bucketed by status, so the
- * server-side sort is preserved inside each column.
- */
 export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
   const [tasks, setTasks] = useState<readonly TaskResponse[]>([])
   const [status, setStatus] = useState<BoardStatus>('loading')
@@ -62,7 +55,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
   const [totalPages, setTotalPages] = useState(0)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [isRefreshing, setIsRefreshing] = useState(false)
-  // Bumping this re-runs the fetch effect without changing the query identity.
   const [reloadToken, setReloadToken] = useState(0)
 
   const mountedRef = useRef(true)
@@ -74,10 +66,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     }
   }, [])
 
-  // A change of filter or sort invalidates the accumulated pages entirely.
-  // Adjusting during render (rather than in an effect) means the fetch effect
-  // below only ever runs once, with the reset page, instead of firing a request
-  // for the stale page and immediately aborting it.
   const [appliedQuery, setAppliedQuery] = useState<TaskQuery>(query)
 
   if (appliedQuery !== query) {
@@ -103,7 +91,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
         if (!mountedRef.current) {
           return
         }
-        // Replacing on page 0 also covers the refresh case; later pages append.
         setTasks((current) =>
           isFirstPage ? response.content : [...current, ...response.content],
         )
@@ -136,7 +123,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     const buckets = emptyBuckets()
 
     for (const task of tasks) {
-      // Defensive: an unknown status from a newer API version must not throw.
       const bucket = buckets[task.status]
       if (bucket !== undefined) {
         bucket.push(task)
@@ -158,11 +144,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     })
   }, [totalPages])
 
-  /**
-   * Mutations re-read the affected task from the API response rather than
-   * optimistically guessing, because the server owns derived fields such as
-   * `updatedAt` and the completed-subtask counters.
-   */
   const runMutation = useCallback(
     async (taskId: number | null, operation: () => Promise<void>): Promise<void> => {
       setPendingTaskId(taskId)
@@ -188,11 +169,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
     setTasks((current) => current.map((task) => (task.id === updated.id ? updated : task)))
   }, [])
 
-  /**
-   * Re-reads one task after a change made outside the board, such as adding or
-   * completing a subtask, so its counters stay accurate without refetching the
-   * whole page. A failure is silent: the counters are cosmetic.
-   */
   const reloadTask = useCallback(
     (taskId: number) => {
       tasksApi
@@ -214,8 +190,6 @@ export function useTaskBoard(query: TaskQuery): UseTaskBoardResult {
         if (!mountedRef.current) {
           return
         }
-        // Prepending keeps the new task visible even under a sort that would
-        // place it further down; the next refresh restores the true order.
         setTasks((current) => [created, ...current])
         setTotalElements((current) => current + 1)
       }),

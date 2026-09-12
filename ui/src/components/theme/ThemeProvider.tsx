@@ -10,7 +10,6 @@ function readStoredTheme(): Theme {
       return stored
     }
   } catch {
-    // Storage can be denied in private mode; fall through to the default.
   }
   return 'system'
 }
@@ -19,10 +18,6 @@ function prefersDark(): boolean {
   return window.matchMedia('(prefers-color-scheme: dark)').matches
 }
 
-/**
- * Owns the light/dark choice. The `dark` class is applied by an inline script
- * in index.html before first paint; this provider keeps it in sync afterwards.
- */
 export function ThemeProvider({ children }: { readonly children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>(readStoredTheme)
 
@@ -48,7 +43,6 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
       return
     }
 
-    // Only a 'system' choice needs to track later OS changes.
     const media = window.matchMedia('(prefers-color-scheme: dark)')
     media.addEventListener('change', apply)
     return () => {
@@ -61,7 +55,6 @@ export function ThemeProvider({ children }: { readonly children: ReactNode }) {
     try {
       window.localStorage.setItem(STORAGE_KEY, next)
     } catch {
-      // A failed write only costs persistence, not the switch itself.
     }
   }, [])
 

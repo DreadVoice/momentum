@@ -2,7 +2,6 @@ import { ApiError, apiErrorFromResponse } from '../lib/ApiError'
 import { tokenStorage, type TokenPair } from '../lib/tokenStorage'
 import type { AuthResponse } from '../types/api'
 
-
 const API_BASE_URL: string = (
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
 ).replace(/\/+$/, '')
@@ -15,7 +14,7 @@ export interface RequestOptions {
   readonly authenticated?: boolean
   readonly query?: Readonly<Record<string, QueryValue>>
   readonly signal?: AbortSignal | undefined
- 
+
   readonly refreshOn401?: boolean
 }
 
@@ -23,11 +22,9 @@ type UnauthorizedHandler = () => void
 
 let onUnauthorized: UnauthorizedHandler | null = null
 
-
 export function setUnauthorizedHandler(handler: UnauthorizedHandler | null): void {
   onUnauthorized = handler
 }
-
 
 const REFRESH_LOCK = 'momentum.token-refresh'
 

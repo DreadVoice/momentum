@@ -260,7 +260,6 @@ function PasswordForm() {
   )
 }
 
-/** Account deletion. Requires the current password in the request body. */
 function DangerZone({ username }: { readonly username: string }) {
   const { logout } = useAuth()
   const [password, setPassword] = useState('')

@@ -15,7 +15,6 @@
       rel="stylesheet"
     />
     <script>
-      // Resolve the theme before first paint so a dark-mode reload never flashes white.
       (function () {
         try {
           var stored = localStorage.getItem('momentum-theme')
@@ -24,7 +23,6 @@
             document.documentElement.classList.add('dark')
           }
         } catch (error) {
-          /* Private-mode storage denial is not worth failing the boot over. */
         }
       })()
     </script>

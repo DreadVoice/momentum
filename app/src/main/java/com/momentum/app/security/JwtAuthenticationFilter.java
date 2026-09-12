@@ -60,7 +60,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
         } catch (JwtException | IllegalArgumentException | UsernameNotFoundException e) {
-            // An invalid token must never leave an authenticated context.
             log.warn("Rejected an invalid token: {}", e.getMessage());
             SecurityContextHolder.clearContext();
         }

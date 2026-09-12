@@ -87,7 +87,6 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 .build();
     }
 
-    /** Behind a proxy the peer address is the proxy, so prefer the first forwarded hop. */
     private String clientAddress(HttpServletRequest request) {
         if (trustForwardedHeader) {
             String forwarded = request.getHeader("X-Forwarded-For");

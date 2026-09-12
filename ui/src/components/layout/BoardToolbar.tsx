@@ -24,7 +24,6 @@ import {
 } from '../ui/select'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../ui/tooltip'
 
-/** Radix Select has no empty-string value, so "no filter" needs a sentinel. */
 const ANY = '__any__'
 
 interface BoardToolbarProps {

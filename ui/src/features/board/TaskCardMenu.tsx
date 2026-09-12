@@ -20,10 +20,6 @@ interface TaskCardMenuProps {
   readonly onDelete: (task: TaskResponse) => void
 }
 
-/**
- * The keyboard-and-pointer route for everything dragging can do, plus edit and
- * delete. Radix handles focus return, roving focus and Escape.
- */
 export function TaskCardMenu({
   task,
   disabled,

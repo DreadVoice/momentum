@@ -21,7 +21,6 @@ export const categoriesApi = {
     })
   },
 
-
   remove(categoryId: number): Promise<void> {
     return requestNoContent(`/api/categories/${categoryId}`, { method: 'DELETE' })
   },

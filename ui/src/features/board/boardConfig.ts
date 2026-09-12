@@ -26,17 +26,12 @@ export const EMPTY_COLUMN_MESSAGES: Readonly<Record<TaskStatus, string>> = {
   [TaskStatus.COMPLETED]: 'No tasks completed yet.',
 }
 
-/**
- * Each board gets one dot colour. Status, priority and overdue deliberately use
- * different hues so no two meanings ever share a colour.
- */
 export const STATUS_DOT_CLASSES: Readonly<Record<TaskStatus, string>> = {
   [TaskStatus.PENDING]: 'bg-muted-foreground/50',
   [TaskStatus.IN_PROGRESS]: 'bg-brand',
   [TaskStatus.COMPLETED]: 'bg-success',
 }
 
-/** Badge variant per priority: neutral, brand, then warning for High. */
 export const PRIORITY_BADGE_VARIANTS = {
   [TaskPriority.LOW]: 'muted',
   [TaskPriority.MEDIUM]: 'brand',

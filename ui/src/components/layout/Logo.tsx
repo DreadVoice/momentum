@@ -1,6 +1,5 @@
 import { cn } from '../../lib/utils'
 
-/** The Momentum mark: the chevron from the favicon, on a brand-filled tile. */
 export function Logo({ className }: { readonly className?: string }) {
   return (
     <span

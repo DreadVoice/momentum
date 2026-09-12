@@ -3,14 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/*
- * Momentum design tokens.
- *
- * A cool neutral product palette: near-achromatic greys carrying a slight blue
- * cast, one indigo brand hue for interactive emphasis, and separate semantic
- * hues so that "brand", "destructive" and "overdue" never collide the way they
- * did when a single accent carried all three.
- */
 :root {
   --radius: 0.625rem;
 
@@ -22,7 +14,6 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.16 0.006 264);
 
-  /* Primary is near-black rather than branded: it keeps dense UI calm. */
   --primary: oklch(0.21 0.008 264);
   --primary-foreground: oklch(0.985 0.002 264);
 
@@ -39,7 +30,6 @@
   --input: oklch(0.922 0.005 264);
   --ring: oklch(0.58 0.18 265);
 
-  /* Brand: the one saturated hue, reserved for focus and selection. */
   --brand: oklch(0.55 0.19 265);
   --brand-foreground: oklch(0.985 0.002 264);
   --brand-subtle: oklch(0.955 0.02 265);
@@ -175,7 +165,6 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
   }
 
-  /* Tabular figures keep counters and dates from jittering as they update. */
   .tabular {
     font-variant-numeric: tabular-nums;
   }
@@ -196,10 +185,6 @@
   }
 }
 
-/*
- * Respect the OS-level reduced-motion setting across every animation source:
- * Tailwind transitions, tw-animate-css keyframes, and dnd-kit drag transforms.
- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

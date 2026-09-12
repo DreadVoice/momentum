@@ -11,11 +11,6 @@ import { AuthCard } from './features/auth/AuthCard'
 import { useAuth } from './hooks/useAuth'
 import type { UserResponse } from './types/api'
 
-/*
- * Every view lives behind authentication, so the sign-in screen has no reason
- * to carry the board's drag-and-drop and animation libraries. Splitting here
- * keeps the first load small for a visitor who is not signed in yet.
- */
 const BoardView = lazy(() =>
   import('./features/board/BoardView').then((module) => ({ default: module.BoardView })),
 )

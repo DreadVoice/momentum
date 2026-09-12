@@ -24,10 +24,6 @@ interface ConfirmDialogProps {
   readonly onClose: () => void
 }
 
-/**
- * Destructive confirmation, always rendered open: the caller mounts it only
- * when a confirmation is pending and unmounts it on close.
- */
 export function ConfirmDialog({
   title,
   body,
@@ -62,7 +58,6 @@ export function ConfirmDialog({
     <AlertDialog
       open
       onOpenChange={(open) => {
-        // Radix reports Escape and overlay dismissal here; ignore both mid-flight.
         if (!open && !isWorking) {
           onClose()
         }

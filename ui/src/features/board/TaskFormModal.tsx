@@ -37,7 +37,6 @@ import { PRIORITY_LABELS, STATUS_LABELS } from './boardConfig'
 const MAX_TITLE_LENGTH = 255
 const MAX_DESCRIPTION_LENGTH = 1000
 
-/** Radix Select has no empty-string value, so "no category" needs a sentinel. */
 const NO_CATEGORY = '__none__'
 
 interface TaskFormModalProps {

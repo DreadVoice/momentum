@@ -1,7 +1,6 @@
 import { createContext } from 'react'
 import type { LoginRequest, RegisterRequest, UserResponse } from '../types/api'
 
-
 export type AuthState =
   | { readonly kind: 'restoring' }
   | { readonly kind: 'anonymous'; readonly sessionExpired: boolean }

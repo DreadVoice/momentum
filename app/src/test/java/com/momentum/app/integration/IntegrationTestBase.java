@@ -26,7 +26,6 @@ import com.momentum.app.repository.UserRepository;
         "app.jwt.secret=integration-test-signing-key-long-enough-for-hs256!",
         "app.cors.allowed-origins=http://localhost:5173",
         "app.ratelimit.capacity=1000",
-        // Validate entities against the Flyway-managed schema.
         "spring.jpa.hibernate.ddl-auto=validate",
         "spring.jpa.show-sql=false"
 })
